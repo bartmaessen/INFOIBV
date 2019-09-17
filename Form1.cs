@@ -53,9 +53,11 @@ namespace INFOIBV
                 case 3:
                     contrastAdjustment();
                     break;
-                case 4://Gaussian filter
-                     gaussianFilter();
-                    
+                case 4:
+                     double[,] kernel =gaussianFilter(5,2.0); //TODO: Print Matrix and check if the sum of all elements is 1
+                    break;
+                case 5:
+                     linearFiltering();
                     break;
                 default:
                     return;//TODO:Add error message
@@ -131,28 +133,28 @@ namespace INFOIBV
                     convertStringToImage(Image3);
                     printImage(Image3);
         }
-        private void gaussianFilter(){
-            if (OutputImage != null) OutputImage.Dispose();                             // Reset output image
-                    OutputImage = new Bitmap(InputImage.Size.Width, InputImage.Size.Height);    // Create new output image
-                    Color[,] Image4 = new Color[InputImage.Size.Width, InputImage.Size.Height];  // Create array to speed-up operations (Bitmap functions are very slow)
-
-                    convertImageToString(Image4);
-                    setupProgressBar();
-
-                    for (int x = 0; x < InputImage.Size.Width; x++)
-                    {
-                        for (int y = 0; y < InputImage.Size.Height; y++)
-                        {
-                            Color pixelColor = Image4[x, y];// Get the pixel color at coordinate (x,y)
-                            Color updatedColor = Color.FromArgb(doClampingContrast(pixelColor.R),doClampingContrast(pixelColor.G),doClampingContrast(pixelColor.B));//Increse the contrast of 50%
-                            Image4[x, y] = updatedColor;                                                 // Set the new pixel color at coordinate (x,y)
-                            progressBar.PerformStep();                                                  // Increment progress bar
-                        }
-                    }
-
-                    convertStringToImage(Image4);
-                    printImage(Image4);
+        public  double[,] gaussianFilter(int size, double sigma){
+            double[,] kernel = new double[size, size];
+            double kernelSum = 0;
+            int center = (size - 1) / 2;
+            double distance = 0;
+            double constant = 1d / (2 * Math.PI * sigma * sigma);
+            for (int y = -center; y <= center; y++){
+                for (int x = -center; x <= center; x++){
+                    distance = ((y * y) + (x * x)) / (2 * sigma * sigma);
+                    kernel[y + center, x + center] = constant * Math.Exp(-distance);
+                    kernelSum += kernel[y + center, x + center];
+                }
+            }
+            for (int y = 0; y < size; y++){
+                for (int x = 0; x < size; x++){
+                    kernel[y, x] = kernel[y, x] * 1d / kernelSum;
+                }
+            }
+            return kernel;
         }
+        public void linearFiltering (double[,] kernel){}
+        //Utilities
 
         private void saveButton_Click(object sender, EventArgs e)
         {
@@ -160,7 +162,6 @@ namespace INFOIBV
             if (saveImageDialog.ShowDialog() == DialogResult.OK)
                 OutputImage.Save(saveImageDialog.FileName);                 // Save the output image
         }
-        //Utilities
         private int doClampingContrast(double color){ //adds contrast of 50% (1.5) to the image using clamping
             if(color*1.5 <= 255 && color*1.5 >=0)
                return (int) (color*1.5);

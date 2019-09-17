@@ -38,60 +38,138 @@ namespace INFOIBV
 
         private void applyButton_Click(object sender, EventArgs e)
         {
-            if (InputImage == null) return;                                 // Get out if no input image
-            if (selectFunction.SelectedIndex == 0) return;                  // Get out if no function selection
-            if (selectFunction.SelectedIndex == 1)
+            if (InputImage == null) return;  // Get out if no input image
+            switch (selectFunction.SelectedIndex)
             {
-                if (OutputImage != null) OutputImage.Dispose();                             // Reset output image
-                OutputImage = new Bitmap(InputImage.Size.Width, InputImage.Size.Height);    // Create new output image
-                Color[,] Image = new Color[InputImage.Size.Width, InputImage.Size.Height];  // Create array to speed-up operations (Bitmap functions are very slow)
-
-                convertImageToString(Image);
-                setupProgressBar();
-                              
-                // Inversion of image
-                for (int x = 0; x < InputImage.Size.Width; x++)
-                {
-                    for (int y = 0; y < InputImage.Size.Height; y++)
-                    {
-                        Color pixelColor = Image[x, y];                                                                     // Get the pixel color at coordinate (x,y)
-                        Color updatedColor = Color.FromArgb(255 - pixelColor.R, 255 - pixelColor.G, 255 - pixelColor.B);    // Negative image
-                        Image[x, y] = updatedColor;                                                                         // Set the new pixel color at coordinate (x,y)
-                        progressBar.PerformStep();                                                                          // Increment progress bar
-                    }
-                }
-
-                convertStringToImage(Image);
-                printImage(Image);
+                case 0://No selection
+                    return;
+                    break;
+                case 1:
+                    colorInversion();
+                    break;
+                case 2:
+                    grayscaleConversion();
+                    break;
+                case 3:
+                    contrastAdjustment();
+                    break;
+                case 4://Gaussian filter
+                     gaussianFilter();
+                    
+                    break;
+                default:
+                    return;//TODO:Add error message
             }
+         
+           
 
-            if (selectFunction.SelectedIndex == 2)
-            {
-                if (OutputImage != null) OutputImage.Dispose();                             // Reset output image
-                OutputImage = new Bitmap(InputImage.Size.Width, InputImage.Size.Height);    // Create new output image
-                Color[,] Image = new Color[InputImage.Size.Width, InputImage.Size.Height];  // Create array to speed-up operations (Bitmap functions are very slow)
+        }
 
-                convertImageToString(Image);
-                setupProgressBar();
+        private void colorInversion(){
+             if (OutputImage != null) OutputImage.Dispose();                             // Reset output image
+                    OutputImage = new Bitmap(InputImage.Size.Width, InputImage.Size.Height);    // Create new output image
+                    Color[,] Image = new Color[InputImage.Size.Width, InputImage.Size.Height];  // Create array to speed-up operations (Bitmap functions are very slow)
 
-                // Grayscale conversion of image
-                for (int x = 0; x < InputImage.Size.Width; x++)
-                {
-                    for (int y = 0; y < InputImage.Size.Height; y++)
-                    {
-                        Color pixelColor = Image[x, y];                                             // Get the pixel color at coordinate (x,y)
-                        var grayColor = (pixelColor.R + pixelColor.G + pixelColor.B)/ 3;            // Get average of RGB value of pixel
-                        Color updatedColor = Color.FromArgb(grayColor, grayColor, grayColor);       // Set average to R, G and B values
-                        Image[x, y] = updatedColor;                                                 // Set the new pixel color at coordinate (x,y)
-                        progressBar.PerformStep();                                                  // Increment progress bar
+                    convertImageToString(Image);
+                    setupProgressBar();
+
+                    // Inversion of image
+                    for (int x = 0; x < InputImage.Size.Width; x++){
+                        for (int y = 0; y < InputImage.Size.Height; y++){
+                            Color pixelColor = Image[x, y];                                                                     // Get the pixel color at coordinate (x,y)
+                            Color updatedColor = Color.FromArgb(255 - pixelColor.R, 255 - pixelColor.G, 255 - pixelColor.B);    // Negative image
+                            Image[x, y] = updatedColor;                                                                         // Set the new pixel color at coordinate (x,y)
+                            progressBar.PerformStep();                                                                          // Increment progress bar
+                        }
                     }
-                }
+                    convertStringToImage(Image);
+                    printImage(Image);
+        }
+        private void grayscaleConversion(){
+            if (OutputImage != null) OutputImage.Dispose();                             // Reset output image
+                    OutputImage = new Bitmap(InputImage.Size.Width, InputImage.Size.Height);    // Create new output image
+                    Color[,] Image2 = new Color[InputImage.Size.Width, InputImage.Size.Height];  // Create array to speed-up operations (Bitmap functions are very slow)
 
-                convertStringToImage(Image);
-                printImage(Image);
-            }
+                    convertImageToString(Image2);
+                    setupProgressBar();
 
-            void setupProgressBar()
+                    // Grayscale conversion of image
+                    for (int x = 0; x < InputImage.Size.Width; x++)
+                    {
+                        for (int y = 0; y < InputImage.Size.Height; y++)
+                        {
+                            Color pixelColor = Image2[x, y];                                             // Get the pixel color at coordinate (x,y)
+                            var grayColor = (pixelColor.R + pixelColor.G + pixelColor.B) / 3;            // Get average of RGB value of pixel
+                            Color updatedColor = Color.FromArgb(grayColor, grayColor, grayColor);       // Set average to R, G and B values
+                            Image2[x, y] = updatedColor;                                                 // Set the new pixel color at coordinate (x,y)
+                            progressBar.PerformStep();                                                  // Increment progress bar
+                        }
+                    }
+
+                    convertStringToImage(Image2);
+                    printImage(Image2);
+        }
+        private void contrastAdjustment(){
+            if (OutputImage != null) OutputImage.Dispose();                             // Reset output image
+                    OutputImage = new Bitmap(InputImage.Size.Width, InputImage.Size.Height);    // Create new output image
+                    Color[,] Image3 = new Color[InputImage.Size.Width, InputImage.Size.Height];  // Create array to speed-up operations (Bitmap functions are very slow)
+
+                    convertImageToString(Image3);
+                    setupProgressBar();
+
+                    for (int x = 0; x < InputImage.Size.Width; x++)
+                    {
+                        for (int y = 0; y < InputImage.Size.Height; y++)
+                        {
+                            Color pixelColor = Image3[x, y];// Get the pixel color at coordinate (x,y)
+                            Color updatedColor = Color.FromArgb(doClampingContrast(pixelColor.R),doClampingContrast(pixelColor.G),doClampingContrast(pixelColor.B));//Increse the contrast of 50%
+                            Image3[x, y] = updatedColor;                                                 // Set the new pixel color at coordinate (x,y)
+                            progressBar.PerformStep();                                                  // Increment progress bar
+                        }
+                    }
+
+                    convertStringToImage(Image3);
+                    printImage(Image3);
+        }
+        private void gaussianFilter(){
+            if (OutputImage != null) OutputImage.Dispose();                             // Reset output image
+                    OutputImage = new Bitmap(InputImage.Size.Width, InputImage.Size.Height);    // Create new output image
+                    Color[,] Image4 = new Color[InputImage.Size.Width, InputImage.Size.Height];  // Create array to speed-up operations (Bitmap functions are very slow)
+
+                    convertImageToString(Image4);
+                    setupProgressBar();
+
+                    for (int x = 0; x < InputImage.Size.Width; x++)
+                    {
+                        for (int y = 0; y < InputImage.Size.Height; y++)
+                        {
+                            Color pixelColor = Image4[x, y];// Get the pixel color at coordinate (x,y)
+                            Color updatedColor = Color.FromArgb(doClampingContrast(pixelColor.R),doClampingContrast(pixelColor.G),doClampingContrast(pixelColor.B));//Increse the contrast of 50%
+                            Image4[x, y] = updatedColor;                                                 // Set the new pixel color at coordinate (x,y)
+                            progressBar.PerformStep();                                                  // Increment progress bar
+                        }
+                    }
+
+                    convertStringToImage(Image4);
+                    printImage(Image4);
+        }
+
+        private void saveButton_Click(object sender, EventArgs e)
+        {
+            if (OutputImage == null) return;                                // Get out if no output image
+            if (saveImageDialog.ShowDialog() == DialogResult.OK)
+                OutputImage.Save(saveImageDialog.FileName);                 // Save the output image
+        }
+        //Utilities
+        private int doClampingContrast(double color){ //adds contrast of 50% (1.5) to the image using clamping
+            if(color*1.5 <= 255 && color*1.5 >=0)
+               return (int) (color*1.5);
+             else if (color*1.5 > 255)
+               return 255;
+             else
+               return 0;
+        }
+        private void setupProgressBar()
             {
                 // Setup progress bar
                 progressBar.Visible = true;
@@ -100,8 +178,7 @@ namespace INFOIBV
                 progressBar.Value = 1;
                 progressBar.Step = 1;
             }
-
-            void convertImageToString(Color[,] Image)
+        private void convertImageToString(Color[,] Image)
             {
                 // Copy input Bitmap to array            
                 for (int x = 0; x < InputImage.Size.Width; x++)
@@ -112,8 +189,7 @@ namespace INFOIBV
                     }
                 }
             }
-
-            void convertStringToImage(Color[,] Image)
+        private void convertStringToImage(Color[,] Image)
             {
                 // Copy array to output Bitmap
                 for (int x = 0; x < InputImage.Size.Width; x++)
@@ -124,20 +200,11 @@ namespace INFOIBV
                     }
                 }
             }
-
-            void printImage(Color[,] Image)
+        private  void printImage(Color[,] Image)
             {
                 pictureBox2.Image = (Image)OutputImage;                         // Display output image
                 progressBar.Visible = false;                                    // Hide progress bar
             }
-        }
-        
-        private void saveButton_Click(object sender, EventArgs e)
-        {
-            if (OutputImage == null) return;                                // Get out if no output image
-            if (saveImageDialog.ShowDialog() == DialogResult.OK)
-                OutputImage.Save(saveImageDialog.FileName);                 // Save the output image
-        }
 
     }
 }

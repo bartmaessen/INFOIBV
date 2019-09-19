@@ -57,7 +57,7 @@ namespace INFOIBV
                      double[,] kernel =gaussianFilter(5,2.0); //TODO: Print Matrix and check if the sum of all elements is 1
                     break;
                 case 5:
-                     linearFiltering();
+                     linearFiltering(gaussianFilter(5,2.0));
                     break;
                 default:
                     return;//TODO:Add error message
@@ -153,7 +153,48 @@ namespace INFOIBV
             }
             return kernel;
         }
-        public void linearFiltering (double[,] kernel){}
+        public void linearFiltering (double[,] kernel){
+            if (OutputImage != null) OutputImage.Dispose();                             // Reset output image
+               OutputImage = new Bitmap(InputImage.Size.Width, InputImage.Size.Height);    // Create new output image
+               Color[,] Image2 = new Color[InputImage.Size.Width, InputImage.Size.Height];  // Create array to speed-up operations (Bitmap functions are very slow)
+
+            convertImageToString(Image2);
+            setupProgressBar();
+            int size =(int)( 5/2); //problem in retrieving size of kernel. TODO: create  obj Kernel thata contains size of kernel
+
+            for (var x = size; x < InputImage.Size.Width - size; x++)
+            {
+                for (var y = size; y < InputImage.Size.Height - size; y++)
+                {
+                    int r = 0, b = 0, g = 0;
+
+                    for (var i = 0; i < 5; i++)
+                    {
+                        for (var j = 0; j < 5; j++)
+                        {   //Convolution
+                            var temp = InputImage.GetPixel(x + i - size, y + j - size);
+
+                            r +=(int) (kernel[i, j] * temp.R);
+                            g += (int) (kernel[i, j] * temp.G);
+                            b +=(int) (kernel[i, j] * temp.B);
+                        }
+                    }
+                    Color updatedColor = Color.FromArgb(r, g, b);       // Set average to R, G and B values
+                    Image2[x, y] = updatedColor;                        // Set the new pixel color at coordinate (x,y)
+                    progressBar.PerformStep();                                                  // Increment progress bar
+                            
+                }
+            }
+
+
+            //do actual things
+
+             convertStringToImage(Image2);
+             printImage(Image2);
+
+
+        
+        }
         //Utilities
 
         private void saveButton_Click(object sender, EventArgs e)

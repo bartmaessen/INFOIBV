@@ -99,44 +99,71 @@ namespace INFOIBV
 
                     convertImageToString(Image2);
                     setupProgressBar();
+                    
+                    doGrayscale(Image2);
 
-                    // Grayscale conversion of image
+                    convertStringToImage(Image2);
+                    printImage(Image2);
+        }
+        private void doGrayscale(Color[,] Image2){
+                     // Grayscale conversion of image
                     for (int x = 0; x < InputImage.Size.Width; x++)
                     {
                         for (int y = 0; y < InputImage.Size.Height; y++)
                         {
                             Color pixelColor = Image2[x, y];                                             // Get the pixel color at coordinate (x,y)
                             var grayColor = (pixelColor.R + pixelColor.G + pixelColor.B) / 3;            // Get average of RGB value of pixel
-                            Color updatedColor = Color.FromArgb(grayColor, grayColor, grayColor);       // Set average to R, G and B values
+                            Color updatedColor = Color.FromArgb(grayColor, grayColor, grayColor);        // Set average to R, G and B values
                             Image2[x, y] = updatedColor;                                                 // Set the new pixel color at coordinate (x,y)
-                            progressBar.PerformStep();                                                  // Increment progress bar
+                            progressBar.PerformStep();                                                   // Increment progress bar
                         }
                     }
-
-                    convertStringToImage(Image2);
-                    printImage(Image2);
         }
         private void contrastAdjustment(){
-            if (OutputImage != null) OutputImage.Dispose();                             // Reset output image
-                    OutputImage = new Bitmap(InputImage.Size.Width, InputImage.Size.Height);    // Create new output image
-                    Color[,] Image3 = new Color[InputImage.Size.Width, InputImage.Size.Height];  // Create array to speed-up operations (Bitmap functions are very slow)
+            if (OutputImage != null) OutputImage.Dispose();                                      // Reset output image
+            OutputImage = new Bitmap(InputImage.Size.Width, InputImage.Size.Height);     // Create new output image
+            Color[,] Image3 = new Color[InputImage.Size.Width, InputImage.Size.Height];  // Create array to speed-up operations (Bitmap functions are very slow)
 
-                    convertImageToString(Image3);
-                    setupProgressBar();
+            convertImageToString(Image3);
+            setupProgressBar();
 
-                    for (int x = 0; x < InputImage.Size.Width; x++)
-                    {
-                        for (int y = 0; y < InputImage.Size.Height; y++)
-                        {
-                            Color pixelColor = Image3[x, y];// Get the pixel color at coordinate (x,y)
-                            Color updatedColor = Color.FromArgb(doClampingContrast(pixelColor.R),doClampingContrast(pixelColor.G),doClampingContrast(pixelColor.B));//Increse the contrast of 50%
-                            Image3[x, y] = updatedColor;                                                 // Set the new pixel color at coordinate (x,y)
-                            progressBar.PerformStep();                                                  // Increment progress bar
-                        }
-                    }
+            var aRhigh = 0;
+            var aRlow = 255;
+            var aGhigh = 0;
+            var aGlow = 255;
+            var aBhigh = 0;
+            var aBlow = 255;
+            for (int x = 0; x < InputImage.Size.Width; x++) 
+            {
+                for (int y = 0; y < InputImage.Size.Height; y++)
+                {
+                    if (Image3[x,y].R > aRhigh) aRhigh = Image3[x,y].R; // Determine the ahigh an alow values of the R,G,B channels
+                    if (Image3[x,y].R < aRlow) aRlow = Image3[x,y].R;
+                    if (Image3[x,y].G > aGhigh) aGhigh = Image3[x,y].G;
+                    if (Image3[x,y].G < aGlow) aGlow = Image3[x,y].G;
+                    if (Image3[x,y].B > aBhigh) aBhigh = Image3[x,y].B;
+                    if (Image3[x,y].B < aBlow) aBlow = Image3[x,y].B;
+                }
+            }
 
-                    convertStringToImage(Image3);
-                    printImage(Image3);
+            var amin = 0;
+            var amax = 255;
+            for (int x = 0; x < InputImage.Size.Width; x++) 
+            {
+                for (int y = 0; y < InputImage.Size.Height; y++)
+                {
+                    Color pixelColor = Image3[x, y];// Get the pixel color at coordinate (x,y)
+                    var r = amin + (amax - amin)/(aRhigh - aRlow)*(Image3[x,y].R-aRlow); // Perform contrast adjustment for each channel 
+                    var g = amin + (amax - amin)/(aGhigh - aGlow)*(Image3[x,y].G-aGlow);
+                    var b = amin + (amax - amin)/(aBhigh - aBlow)*(Image3[x,y].B-aBlow);
+                    Color updatedColor = Color.FromArgb(r,g,b);
+                    Image3[x, y] = updatedColor;                                                 // Set the new pixel color at coordinate (x,y)
+                    progressBar.PerformStep();                                                  // Increment progress bar
+                }
+            }
+
+            convertStringToImage(Image3);
+            printImage(Image3);
         }
         public  double[,] gaussianFilter(int size, double sigma){
             double[,] kernel = new double[size, size];
@@ -200,6 +227,30 @@ namespace INFOIBV
 
         
         }
+        public void thresholding(int ath){
+            if (OutputImage != null) OutputImage.Dispose();                                      // Reset output image
+            OutputImage = new Bitmap(InputImage.Size.Width, InputImage.Size.Height);     // Create new output image
+            Color[,] Image5 = new Color[InputImage.Size.Width, InputImage.Size.Height];  // Create array to speed-up operations (Bitmap functions are very slow)
+
+            convertImageToString(Image5);
+            setupProgressBar();
+
+            doGrayscale(Image5);
+            
+            for (int x = 0; x < InputImage.Size.Width; x++)
+            {
+                for (int y = 0; y < InputImage.Size.Height; y++)
+                {
+                    Color pixelColor = Image5[x, y];                                             // Get the pixel color at coordinate (x,y)
+
+                    var grayColor = (pixelColor.R + pixelColor.G + pixelColor.B) / 3;            // Get average of RGB value of pixel
+                    Color updatedColor = Color.FromArgb(grayColor, grayColor, grayColor);        // Set average to R, G and B values
+                    Image5[x, y] = updatedColor;                                                 // Set the new pixel color at coordinate (x,y)
+                    progressBar.PerformStep();                                                   // Increment progress bar
+                }
+            }
+        }
+
         //Utilities
 
         private void saveButton_Click(object sender, EventArgs e)

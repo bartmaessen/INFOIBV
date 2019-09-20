@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.Data;
@@ -200,8 +201,24 @@ namespace INFOIBV
 
         
         }
-        //Utilities
+        private Bitmap edgeDetection(Bitmap inputImage, double[,] edgeKernel){}
+        private Bitmap nonLinearFiltering(Bitmap inputImage, int medianSize){
+            Color[,] image = new Color[InputImage.Size.Width,InputImage.Size.Height];
+            convertImageToString(image);
+            setupProgressBar();
 
+            for(int x = 0 ; x<InputImage.Size.Width;x++){
+                for(int y=0; y<InputImage.Size.Height;y++){
+                    ArrayList list = getPixelsAround(x,y,medianSize);
+                }
+            }
+
+        }
+        
+        //Utilities
+        private ArrayList getPixelsAround(int x, int y, int medianSize){
+           
+        }
         private void saveButton_Click(object sender, EventArgs e)
         {
             if (OutputImage == null) return;                                // Get out if no output image

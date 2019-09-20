@@ -37,8 +37,9 @@
             this.saveButton = new System.Windows.Forms.Button();
             this.pictureBox2 = new System.Windows.Forms.PictureBox();
             this.progressBar = new System.Windows.Forms.ProgressBar();
-            this.selectFunction = new System.Windows.Forms.ComboBox();
+            this.selectFunctionBox = new System.Windows.Forms.ComboBox();
             this.backgroundWorker1 = new System.ComponentModel.BackgroundWorker();
+            this.thresholdBox = new System.Windows.Forms.TextBox();
             ((System.ComponentModel.ISupportInitialize)(this.pictureBox1)).BeginInit();
             ((System.ComponentModel.ISupportInitialize)(this.pictureBox2)).BeginInit();
             this.SuspendLayout();
@@ -64,7 +65,7 @@
             this.imageFileName.Location = new System.Drawing.Point(116, 14);
             this.imageFileName.Name = "imageFileName";
             this.imageFileName.ReadOnly = true;
-            this.imageFileName.Size = new System.Drawing.Size(238, 20);
+            this.imageFileName.Size = new System.Drawing.Size(199, 20);
             this.imageFileName.TabIndex = 1;
             // 
             // pictureBox1
@@ -112,17 +113,17 @@
             // 
             // progressBar
             // 
-            this.progressBar.Location = new System.Drawing.Point(644, 14);
+            this.progressBar.Location = new System.Drawing.Point(656, 12);
             this.progressBar.Name = "progressBar";
             this.progressBar.Size = new System.Drawing.Size(276, 20);
             this.progressBar.Style = System.Windows.Forms.ProgressBarStyle.Continuous;
             this.progressBar.TabIndex = 6;
             this.progressBar.Visible = false;
             // 
-            // selectFunction
+            // selectFunctionBox
             // 
-            this.selectFunction.FormattingEnabled = true;
-            this.selectFunction.Items.AddRange(new object[] {
+            this.selectFunctionBox.FormattingEnabled = true;
+            this.selectFunctionBox.Items.AddRange(new object[] {
             "Select a function",
             "Inversion",
             "Grayscale",
@@ -131,17 +132,29 @@
             "Non linear filtering",
             "Edge detection",
             "Thresholding"});
-            this.selectFunction.Location = new System.Drawing.Point(402, 13);
-            this.selectFunction.Name = "selectFunction";
-            this.selectFunction.Size = new System.Drawing.Size(127, 21);
-            this.selectFunction.TabIndex = 7;
+            this.selectFunctionBox.Location = new System.Drawing.Point(402, 13);
+            this.selectFunctionBox.Name = "selectFunctionBox";
+            this.selectFunctionBox.Size = new System.Drawing.Size(127, 21);
+            this.selectFunctionBox.TabIndex = 7;
+            this.selectFunctionBox.SelectedIndexChanged += new System.EventHandler(this.selectFuncionBox_SelectedIndexChanged);
+            // 
+            // thresholdBox
+            // 
+            this.thresholdBox.Location = new System.Drawing.Point(487, 13);
+            this.thresholdBox.Name = "thresholdBox";
+            this.thresholdBox.Size = new System.Drawing.Size(42, 20);
+            this.thresholdBox.TabIndex = 8;
+            this.thresholdBox.Text = "Value";
+            this.thresholdBox.TextAlign = System.Windows.Forms.HorizontalAlignment.Center;
+            this.thresholdBox.Visible = false;
             // 
             // INFOIBV
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.ClientSize = new System.Drawing.Size(1052, 576);
-            this.Controls.Add(this.selectFunction);
+            this.Controls.Add(this.thresholdBox);
+            this.Controls.Add(this.selectFunctionBox);
             this.Controls.Add(this.progressBar);
             this.Controls.Add(this.pictureBox2);
             this.Controls.Add(this.saveButton);
@@ -171,8 +184,9 @@
         private System.Windows.Forms.Button saveButton;
         private System.Windows.Forms.PictureBox pictureBox2;
         private System.Windows.Forms.ProgressBar progressBar;
-        private System.Windows.Forms.ComboBox selectFunction;
+        private System.Windows.Forms.ComboBox selectFunctionBox;
         private System.ComponentModel.BackgroundWorker backgroundWorker1;
+        private System.Windows.Forms.TextBox thresholdBox;
     }
 }
 

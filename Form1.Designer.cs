@@ -127,8 +127,10 @@
             "Inversion",
             "Grayscale",
             "Contrast",
-            "Guassian filter",
-            "Linear filtering"});
+            "Linear filtering",
+            "Non linear filtering",
+            "Edge detection",
+            "Thresholding"});
             this.selectFunction.Location = new System.Drawing.Point(402, 13);
             this.selectFunction.Name = "selectFunction";
             this.selectFunction.Size = new System.Drawing.Size(127, 21);

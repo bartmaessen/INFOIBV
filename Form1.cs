@@ -54,11 +54,16 @@ namespace INFOIBV
                     contrastAdjustment();
                     break;
                 case 4:
-                     double[,] kernel =gaussianFilter(5,2.0); //TODO: Print Matrix and check if the sum of all elements is 1
-                    break;
-                case 5:
                      linearFiltering(gaussianFilter(5,2.0));
                     break;
+                case 5:
+                    nonLinearFiltering();
+                    break;
+                case 6:
+                    edgeDetection();
+                    break;
+                case 7:
+                    thresholding();
                 default:
                     return;//TODO:Add error message
             }

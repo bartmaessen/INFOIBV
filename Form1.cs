@@ -35,11 +35,23 @@ namespace INFOIBV
                     pictureBox1.Image = (Image) InputImage;                 // Display input image
             }
         }
-
-        private void applyButton_Click(object sender, EventArgs e)
+        public void selectFuncionBox_SelectedIndexChanged(object sender, System.EventArgs e)
+        {
+            if (selectFunctionBox.SelectedIndex == 7)
+                {
+                this.selectFunctionBox.Location = new System.Drawing.Point(357, 13);
+                this.thresholdBox.Visible = true;
+            }
+            else
+            {
+                this.selectFunctionBox.Location = new System.Drawing.Point(402, 13);
+                this.thresholdBox.Visible = false;
+            }
+        }
+            private void applyButton_Click(object sender, EventArgs e)
         {
             if (InputImage == null) return;  // Get out if no input image
-            switch (selectFunction.SelectedIndex)
+            switch (selectFunctionBox.SelectedIndex)
             {
                 case 0://No selection
                     return;
@@ -63,13 +75,22 @@ namespace INFOIBV
                     edgeDetection();
                     break;
                 case 7:
-                    thresholding();
+                    int ath;
+                    if (Int32.TryParse(thresholdBox.Text, out ath))
+                    {
+                        if (ath >= 0 && ath < 255)
+                        {
+                            thresholding(ath);
+                        }
+                    }
+                    else
+                    {
+                        MessageBox.Show("Insert an integer from 0 untill 255");
+                    }
+                    break;
                 default:
                     return;//TODO:Add error message
             }
-         
-           
-
         }
 
         private void colorInversion(){
@@ -100,12 +121,12 @@ namespace INFOIBV
                     convertImageToString(Image2);
                     setupProgressBar();
                     
-                    doGrayscale(Image2);
+                    doGrayscale(Image2, true);
 
                     convertStringToImage(Image2);
                     printImage(Image2);
         }
-        private void doGrayscale(Color[,] Image2){
+        private void doGrayscale(Color[,] Image2, bool isFinalOperation){
                      // Grayscale conversion of image
                     for (int x = 0; x < InputImage.Size.Width; x++)
                     {
@@ -115,7 +136,7 @@ namespace INFOIBV
                             var grayColor = (pixelColor.R + pixelColor.G + pixelColor.B) / 3;            // Get average of RGB value of pixel
                             Color updatedColor = Color.FromArgb(grayColor, grayColor, grayColor);        // Set average to R, G and B values
                             Image2[x, y] = updatedColor;                                                 // Set the new pixel color at coordinate (x,y)
-                            progressBar.PerformStep();                                                   // Increment progress bar
+                            if (isFinalOperation == true) progressBar.PerformStep();                     // Increment progress bar if Grayscale is used as final operation
                         }
                     }
         }
@@ -235,20 +256,24 @@ namespace INFOIBV
             convertImageToString(Image5);
             setupProgressBar();
 
-            doGrayscale(Image5);
+            doGrayscale(Image5, false);
             
             for (int x = 0; x < InputImage.Size.Width; x++)
             {
                 for (int y = 0; y < InputImage.Size.Height; y++)
                 {
                     Color pixelColor = Image5[x, y];                                             // Get the pixel color at coordinate (x,y)
-
-                    var grayColor = (pixelColor.R + pixelColor.G + pixelColor.B) / 3;            // Get average of RGB value of pixel
-                    Color updatedColor = Color.FromArgb(grayColor, grayColor, grayColor);        // Set average to R, G and B values
+                    int newColor;
+                    if (Image5[x, y].R < ath) newColor = 0;                                      // Set new color value according to the threshold value
+                    else newColor = 255;
+                    Color updatedColor = Color.FromArgb(newColor, newColor, newColor);           // Make the new color value into a 3 channel color array
                     Image5[x, y] = updatedColor;                                                 // Set the new pixel color at coordinate (x,y)
                     progressBar.PerformStep();                                                   // Increment progress bar
                 }
+                
             }
+            convertStringToImage(Image5);
+            printImage(Image5);
         }
 
         //Utilities

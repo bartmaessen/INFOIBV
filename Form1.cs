@@ -70,7 +70,9 @@ namespace INFOIBV
                      linearFiltering(gaussianFilter(5,2.0));
                     break;
                 case 5:
-                    nonLinearFiltering();
+                    Color[,] image = nonLinearFiltering(InputImage,3);
+                    convertStringToImage(image);
+                    printImage(image);
                     break;
                 case 6:
                     edgeDetection();
@@ -257,9 +259,40 @@ namespace INFOIBV
         
         }
         //Utilities
-        private ArrayList getPixelsAround(int x, int y, int medianSize){
-           
+        private Color[,] nonLinearFiltering(Bitmap InputImage, int medianSize){
+            if (OutputImage != null) OutputImage.Dispose();                             // Reset output image
+                    OutputImage = new Bitmap(InputImage.Size.Width, InputImage.Size.Height);    // Create new output image
+                    Color[,] Image = new Color[InputImage.Size.Width, InputImage.Size.Height];  // Create array to speed-up operations (Bitmap functions are very slow)
+
+                    convertImageToString(Image);
+                    setupProgressBar();
+            List<int> neighbourPixelsR = new List<int>();
+            //List<int> neighbourPixelsG = new List<int>();
+            //List<int> neighbourPixelsB = new List<int>();
+            int filterOffset = (medianSize - 1) / 2;
+
+            for (int offsetY = filterOffset; offsetY < InputImage.Size.Height - filterOffset ; offsetY++){
+                for (int offsetX = filterOffset; offsetX < InputImage.Size.Width - filterOffset; offsetX++){
+                    
+                    neighbourPixelsR.Clear();
+                   // neighbourPixelsG.Clear();
+                   //neighbourPixelsB.Clear();
+
+                    for (int filterY = -filterOffset; filterY <= filterOffset; filterY++){
+                            for (int filterX = -filterOffset;filterX <= filterOffset; filterX++){
+                                 neighbourPixelsR.Add(InputImage.GetPixel(offsetX-filterX,offsetY-filterY).ToArgb());
+               }
+           }
+            neighbourPixelsR.Sort();
+            Image[offsetX,offsetY] = Color.FromArgb(neighbourPixelsR.ElementAt((int)((neighbourPixelsR.Count)/ 2)));
+             progressBar.PerformStep();   
+                }        
+            }
+
+            return Image;
+                    
         }
+ 
         private void saveButton_Click(object sender, EventArgs e)
         {
             if (OutputImage == null) return;                                // Get out if no output image

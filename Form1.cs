@@ -49,7 +49,7 @@ namespace INFOIBV
                 this.thresholdBox.Visible = false;
             }
         }
-            private void applyButton_Click(object sender, EventArgs e)
+        private void applyButton_Click(object sender, EventArgs e)
         {
             if (InputImage == null) return;  // Get out if no input image
             switch (selectFunctionBox.SelectedIndex)
@@ -295,18 +295,23 @@ namespace INFOIBV
         
         }
         private Color[,] thresholding(int ath){
-            if (OutputImage != null) OutputImage.Dispose();                                      // Reset output image
+            if (OutputImage != null) OutputImage.Dispose();                              // Reset output image
             OutputImage = new Bitmap(InputImage.Size.Width, InputImage.Size.Height);     // Create new output image
             Color[,] Image5 = new Color[InputImage.Size.Width, InputImage.Size.Height];  // Create array to speed-up operations (Bitmap functions are very slow)
 
-             for (int x = 0; x < InputImage.Size.Width; x++)
+            convertImageToString(Image5);
+            setupProgressBar();
+
+            Image5 = doGrayscale(Image5, false);
+
+            for (int x = 0; x < InputImage.Size.Width; x++)
             {
                 for (int y = 0; y < InputImage.Size.Height; y++)
                 {
                     Color pixelColor = Image5[x, y];                                             // Get the pixel color at coordinate (x,y)
                     int newColor;
-                    if (Image5[x, y].R < ath) newColor = 0;                                      // Set new color value according to the threshold value
-                    else newColor = 255;
+                    if (pixelColor.R < ath) { newColor = 0; }                                    // Set new color value according to the threshold value
+                    else { newColor = 255; }
                     Color updatedColor = Color.FromArgb(newColor, newColor, newColor);           // Make the new color value into a 3 channel color array
                     Image5[x, y] = updatedColor;                                                 // Set the new pixel color at coordinate (x,y)
                     progressBar.PerformStep();                                                   // Increment progress bar

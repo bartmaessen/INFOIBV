@@ -38,14 +38,14 @@ namespace INFOIBV
         }
         public void selectFuncionBox_SelectedIndexChanged(object sender, System.EventArgs e)
         {
-            if (selectFunctionBox.SelectedIndex == 7)
+            if (selectFunctionBox.SelectedIndex == 7 || selectFunctionBox.SelectedIndex == 4)  //Move selectionbar and show a textbox when Linear filter or Thresholding are selected
                 {
                 this.selectFunctionBox.Location = new System.Drawing.Point(357, 13);
                 this.thresholdBox.Visible = true;
             }
             else
             {
-                this.selectFunctionBox.Location = new System.Drawing.Point(402, 13);
+                this.selectFunctionBox.Location = new System.Drawing.Point(402, 13);        //Move selectionbar and hide textbox when others are selected
                 this.thresholdBox.Visible = false;
             }
         }
@@ -67,7 +67,15 @@ namespace INFOIBV
                     showImage(contrastAdjustment(InputImage));
                     break;
                 case 4:
-                     showImage(linearFiltering(InputImage,gaussianFilter(5,2.0)));
+                    int sigma;
+                    if (Int32.TryParse(thresholdBox.Text, out sigma))
+                    {
+                        showImage(linearFiltering(InputImage, gaussianFilter(3, sigma)));
+                    }
+                    else
+                    {
+                        MessageBox.Show("Select an integer value for sigma");
+                    }
                     break;
                 case 5:
                     showImage(nonLinearFiltering(InputImage,3));
@@ -225,9 +233,9 @@ namespace INFOIBV
                 {
                     int r = 0, b = 0, g = 0;
 
-                    for (var i = 0; i < 5; i++)
+                    for (var i = 0; i < 3; i++)
                     {
-                        for (var j = 0; j < 5; j++)
+                        for (var j = 0; j < 3; j++)
                         {   //Convolution
                             var temp = InputImage.GetPixel(x + i - size, y + j - size);
 

@@ -58,26 +58,27 @@ namespace INFOIBV
                     return;
                     break;
                 case 1:
-                    colorInversion();
+                    showImage(colorInversion(InputImage));
                     break;
                 case 2:
-                    grayscaleConversion();
+                    showImage(grayscaleConversion(InputImage));               
                     break;
                 case 3:
-                    contrastAdjustment();
+                    showImage(contrastAdjustment(InputImage));
                     break;
                 case 4:
-                     linearFiltering(gaussianFilter(5,2.0));
+                     showImage(linearFiltering(InputImage,gaussianFilter(5,2.0)));
                     break;
                 case 5:
-                    Color[,] image = nonLinearFiltering(InputImage,3);
-                    convertStringToImage(image);
-                    printImage(image);
+                    showImage(nonLinearFiltering(InputImage,3));
                     break;
                 case 6:
-                    Color[,] image1 = edgeDetection(InputImage,new double[,]{ { -1, 0, 1 }, { -2, 0, 2 },{ -1, 0, 1 }},new double[,] { {  1,  2,  1 }, {  0,  0,  0 }, { -1, -2, -1 }});
-                    convertStringToImage(image1);
-                    printImage(image1);
+                    showImage(edgeDetection(InputImage,new double[,]{{ -1, 0, 1 }, //Edge detection using sobel operator
+                                                                     { -2, 0, 2 },
+                                                                     { -1, 0, 1 }},
+                                                        new double[,] { {  1,  2,  1 },
+                                                                        {  0,  0,  0 }, 
+                                                                        { -1, -2, -1 }}));
                     break;
                 case 7:
                     int ath;
@@ -85,7 +86,7 @@ namespace INFOIBV
                     {
                         if (ath >= 0 && ath < 255)
                         {
-                            thresholding(ath);
+                           showImage(thresholding(ath));
                         }
                     }
                     else
@@ -94,11 +95,11 @@ namespace INFOIBV
                     }
                     break;
                 default:
-                    return;//TODO:Add error message
+                    return;
             }
         }
 
-        private void colorInversion(){
+        private Color[,] colorInversion(Bitmap InputImage){
              if (OutputImage != null) OutputImage.Dispose();                             // Reset output image
                     OutputImage = new Bitmap(InputImage.Size.Width, InputImage.Size.Height);    // Create new output image
                     Color[,] Image = new Color[InputImage.Size.Width, InputImage.Size.Height];  // Create array to speed-up operations (Bitmap functions are very slow)
@@ -115,10 +116,10 @@ namespace INFOIBV
                             progressBar.PerformStep();                                                                          // Increment progress bar
                         }
                     }
-                    convertStringToImage(Image);
-                    printImage(Image);
+
+                    return Image;
         }
-        private void grayscaleConversion(){
+        private Color[,] grayscaleConversion(Bitmap InputImage){
             if (OutputImage != null) OutputImage.Dispose();                             // Reset output image
                     OutputImage = new Bitmap(InputImage.Size.Width, InputImage.Size.Height);    // Create new output image
                     Color[,] Image2 = new Color[InputImage.Size.Width, InputImage.Size.Height];  // Create array to speed-up operations (Bitmap functions are very slow)
@@ -126,31 +127,29 @@ namespace INFOIBV
                     convertImageToString(Image2);
                     setupProgressBar();
                     
-                    doGrayscale(Image2, true);
-
-                    convertStringToImage(Image2);
-                    printImage(Image2);
+                    return doGrayscale(Image2, true);
         }
-        private void doGrayscale(Color[,] Image2, bool isFinalOperation){
+        private Color[,] doGrayscale(Color[,] image, bool isFinalOperation){
                      // Grayscale conversion of image
                     for (int x = 0; x < InputImage.Size.Width; x++)
                     {
                         for (int y = 0; y < InputImage.Size.Height; y++)
                         {
-                            Color pixelColor = Image2[x, y];                                             // Get the pixel color at coordinate (x,y)
+                            Color pixelColor = image[x, y];                                             // Get the pixel color at coordinate (x,y)
                             var grayColor = (pixelColor.R + pixelColor.G + pixelColor.B) / 3;            // Get average of RGB value of pixel
                             Color updatedColor = Color.FromArgb(grayColor, grayColor, grayColor);        // Set average to R, G and B values
-                            Image2[x, y] = updatedColor;                                                 // Set the new pixel color at coordinate (x,y)
+                            image[x, y] = updatedColor;                                                 // Set the new pixel color at coordinate (x,y)
                             if (isFinalOperation == true) progressBar.PerformStep();                     // Increment progress bar if Grayscale is used as final operation
                         }
                     }
+                    return image;
         }
-        private void contrastAdjustment(){
+        private Color[,] contrastAdjustment(Bitmap InputImage){
             if (OutputImage != null) OutputImage.Dispose();                                      // Reset output image
             OutputImage = new Bitmap(InputImage.Size.Width, InputImage.Size.Height);     // Create new output image
-            Color[,] Image3 = new Color[InputImage.Size.Width, InputImage.Size.Height];  // Create array to speed-up operations (Bitmap functions are very slow)
+            Color[,] image = new Color[InputImage.Size.Width, InputImage.Size.Height];  // Create array to speed-up operations (Bitmap functions are very slow)
 
-            convertImageToString(Image3);
+            convertImageToString(image);
             setupProgressBar();
 
             var aRhigh = 0;
@@ -163,12 +162,12 @@ namespace INFOIBV
             {
                 for (int y = 0; y < InputImage.Size.Height; y++)
                 {
-                    if (Image3[x,y].R > aRhigh) aRhigh = Image3[x,y].R; // Determine the ahigh an alow values of the R,G,B channels
-                    if (Image3[x,y].R < aRlow) aRlow = Image3[x,y].R;
-                    if (Image3[x,y].G > aGhigh) aGhigh = Image3[x,y].G;
-                    if (Image3[x,y].G < aGlow) aGlow = Image3[x,y].G;
-                    if (Image3[x,y].B > aBhigh) aBhigh = Image3[x,y].B;
-                    if (Image3[x,y].B < aBlow) aBlow = Image3[x,y].B;
+                    if (image[x,y].R > aRhigh) aRhigh = image[x,y].R; // Determine the ahigh an alow values of the R,G,B channels
+                    if (image[x,y].R < aRlow) aRlow = image[x,y].R;
+                    if (image[x,y].G > aGhigh) aGhigh = image[x,y].G;
+                    if (image[x,y].G < aGlow) aGlow = image[x,y].G;
+                    if (image[x,y].B > aBhigh) aBhigh = image[x,y].B;
+                    if (image[x,y].B < aBlow) aBlow = image[x,y].B;
                 }
             }
 
@@ -178,20 +177,20 @@ namespace INFOIBV
             {
                 for (int y = 0; y < InputImage.Size.Height; y++)
                 {
-                    Color pixelColor = Image3[x, y];// Get the pixel color at coordinate (x,y)
-                    var r = amin + (amax - amin)/(aRhigh - aRlow)*(Image3[x,y].R-aRlow); // Perform contrast adjustment for each channel 
-                    var g = amin + (amax - amin)/(aGhigh - aGlow)*(Image3[x,y].G-aGlow);
-                    var b = amin + (amax - amin)/(aBhigh - aBlow)*(Image3[x,y].B-aBlow);
+                    Color pixelColor = image[x, y];// Get the pixel color at coordinate (x,y)
+                    var r = amin + (amax - amin)/(aRhigh - aRlow)*(image[x,y].R-aRlow); // Perform contrast adjustment for each channel 
+                    var g = amin + (amax - amin)/(aGhigh - aGlow)*(image[x,y].G-aGlow);
+                    var b = amin + (amax - amin)/(aBhigh - aBlow)*(image[x,y].B-aBlow);
                     Color updatedColor = Color.FromArgb(r,g,b);
-                    Image3[x, y] = updatedColor;                                                 // Set the new pixel color at coordinate (x,y)
+                    image[x, y] = updatedColor;                                                 // Set the new pixel color at coordinate (x,y)
                     progressBar.PerformStep();                                                  // Increment progress bar
                 }
             }
-
-            convertStringToImage(Image3);
-            printImage(Image3);
+            return image;
+            //convertStringToImage(image);
+            //printImage(image);
         }
-        public  double[,] gaussianFilter(int size, double sigma){
+        private double[,] gaussianFilter(int size, double sigma){
             double[,] kernel = new double[size, size];
             double kernelSum = 0;
             int center = (size - 1) / 2;
@@ -211,7 +210,7 @@ namespace INFOIBV
             }
             return kernel;
         }
-        public void linearFiltering (double[,] kernel){
+        private Color[,] linearFiltering (Bitmap InputImage,double[,] kernel){
             if (OutputImage != null) OutputImage.Dispose();                             // Reset output image
                OutputImage = new Bitmap(InputImage.Size.Width, InputImage.Size.Height);    // Create new output image
                Color[,] Image2 = new Color[InputImage.Size.Width, InputImage.Size.Height];  // Create array to speed-up operations (Bitmap functions are very slow)
@@ -244,16 +243,11 @@ namespace INFOIBV
                 }
             }
 
-
-            //do actual things
-
-             convertStringToImage(Image2);
-             printImage(Image2);
-
-
-        
+            return Image2;
+            // convertStringToImage(Image2);
+             //printImage(Image2);
         }
-        public Color[,] linearFiltering2 (double[,] kernel){
+        private Color[,] linearFiltering2 (double[,] kernel){
             if (OutputImage != null) OutputImage.Dispose();                             // Reset output image
                OutputImage = new Bitmap(InputImage.Size.Width, InputImage.Size.Height);    // Create new output image
                Color[,] Image2 = new Color[InputImage.Size.Width, InputImage.Size.Height];  // Create array to speed-up operations (Bitmap functions are very slow)
@@ -300,11 +294,27 @@ namespace INFOIBV
             return Image2;
         
         }
-        public void thresholding(int ath){
+        private Color[,] thresholding(int ath){
             if (OutputImage != null) OutputImage.Dispose();                                      // Reset output image
             OutputImage = new Bitmap(InputImage.Size.Width, InputImage.Size.Height);     // Create new output image
             Color[,] Image5 = new Color[InputImage.Size.Width, InputImage.Size.Height];  // Create array to speed-up operations (Bitmap functions are very slow)
 
+             for (int x = 0; x < InputImage.Size.Width; x++)
+            {
+                for (int y = 0; y < InputImage.Size.Height; y++)
+                {
+                    Color pixelColor = Image5[x, y];                                             // Get the pixel color at coordinate (x,y)
+                    int newColor;
+                    if (Image5[x, y].R < ath) newColor = 0;                                      // Set new color value according to the threshold value
+                    else newColor = 255;
+                    Color updatedColor = Color.FromArgb(newColor, newColor, newColor);           // Make the new color value into a 3 channel color array
+                    Image5[x, y] = updatedColor;                                                 // Set the new pixel color at coordinate (x,y)
+                    progressBar.PerformStep();                                                   // Increment progress bar
+                }
+
+            }
+
+             return Image5;
         
         }
         private Color[,] nonLinearFiltering(Bitmap InputImage, int medianSize){
@@ -331,7 +341,7 @@ namespace INFOIBV
                                  neighbourPixelsR.Add(InputImage.GetPixel(offsetX-filterX,offsetY-filterY).ToArgb());
                }
            }
-            neighbourPixelsR.Sort();
+            neighbourPixelsR.Sort();//Using only the Red channel to choose the median pixel
             Image[offsetX,offsetY] = Color.FromArgb(neighbourPixelsR.ElementAt((int)((neighbourPixelsR.Count)/ 2)));
              progressBar.PerformStep();   
                 }        
@@ -384,14 +394,6 @@ namespace INFOIBV
             if (saveImageDialog.ShowDialog() == DialogResult.OK)
                 OutputImage.Save(saveImageDialog.FileName);                 // Save the output image
         }
-        private int doClampingContrast(double color){ //adds contrast of 50% (1.5) to the image using clamping
-            if(color*1.5 <= 255 && color*1.5 >=0)
-               return (int) (color*1.5);
-             else if (color*1.5 > 255)
-               return 255;
-             else
-               return 0;
-        }
         private void setupProgressBar()
             {
                 // Setup progress bar
@@ -428,6 +430,10 @@ namespace INFOIBV
                 pictureBox2.Image = (Image)OutputImage;                         // Display output image
                 progressBar.Visible = false;                                    // Hide progress bar
             }
+        private void showImage(Color[,] image){
+            convertStringToImage(image);
+            printImage(image);
+        }
 
     }
 }

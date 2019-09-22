@@ -20,6 +20,21 @@ namespace INFOIBV
         {
             InitializeComponent();
         }
+        public class Kernel{
+            double[,] matrix;
+            int size;
+            public Kernel(double[,] matrix, int size){
+                this.matrix = matrix;
+                this.size = size;
+            }
+
+            public double[,] getMatrix (){
+                return this.matrix;
+            }
+            public int getSize(){
+                return this.size;
+            }
+        }
 
         private void LoadImageButton_Click(object sender, EventArgs e)
         {
@@ -70,7 +85,7 @@ namespace INFOIBV
                     int sigma;
                     if (Int32.TryParse(thresholdBox.Text, out sigma))
                     {
-                        showImage(linearFiltering(InputImage, gaussianFilter(3, sigma)));
+                        showImage(linearFiltering2(InputImage,gaussianFilter(5,sigma)));
                     }
                     else
                     {
@@ -198,7 +213,7 @@ namespace INFOIBV
             //convertStringToImage(image);
             //printImage(image);
         }
-        private double[,] gaussianFilter(int size, double sigma){
+        private Kernel gaussianFilter(int size, double sigma){
             double[,] kernel = new double[size, size];
             double kernelSum = 0;
             int center = (size - 1) / 2;
@@ -216,7 +231,8 @@ namespace INFOIBV
                     kernel[y, x] = kernel[y, x] * 1d / kernelSum;
                 }
             }
-            return kernel;
+
+            return new Kernel(kernel,size);
         }
         private Color[,] linearFiltering (Bitmap InputImage,double[,] kernel){
             if (OutputImage != null) OutputImage.Dispose();                             // Reset output image
@@ -255,14 +271,15 @@ namespace INFOIBV
             // convertStringToImage(Image2);
              //printImage(Image2);
         }
-        private Color[,] linearFiltering2 (double[,] kernel){
+        private Color[,] linearFiltering2 (Bitmap InputImage, Kernel kernell){
             if (OutputImage != null) OutputImage.Dispose();                             // Reset output image
                OutputImage = new Bitmap(InputImage.Size.Width, InputImage.Size.Height);    // Create new output image
                Color[,] Image2 = new Color[InputImage.Size.Width, InputImage.Size.Height];  // Create array to speed-up operations (Bitmap functions are very slow)
 
             convertImageToString(Image2);
            // setupProgressBar();
-            int size =(int)( 3/2); //problem in retrieving size of kernel. TODO: create  obj Kernel thata contains size of kernel
+            double[,] kernel = kernell.getMatrix();
+            int size =(int)(kernell.getSize()/2);
 
             for (var x = size; x < InputImage.Size.Width - size; x++)
             {
@@ -270,9 +287,9 @@ namespace INFOIBV
                 {
                     int r = 0, b = 0, g = 0;
 
-                    for (var i = 0; i < 3; i++)
+                    for (var i = 0; i < kernell.getSize(); i++)
                     {
-                        for (var j = 0; j < 3; j++)
+                        for (var j = 0; j < kernell.getSize(); j++)
                         {   //Convolution
                             var temp = InputImage.GetPixel(x + i - size, y + j - size);
 
@@ -365,8 +382,8 @@ namespace INFOIBV
         }
         private Color[,] edgeDetection(Bitmap inputImage,double[,] edgeKernelX,double[,] edgekernelY){
             Color[,] outputImage = new Color[InputImage.Size.Width, InputImage.Size.Height];
-            Color[,] dx = linearFiltering2(edgeKernelX) ;  
-            Color[,] dy= linearFiltering2(edgekernelY);
+            Color[,] dx = linearFiltering(InputImage,edgeKernelX) ;  
+            Color[,] dy= linearFiltering(InputImage,edgekernelY);
 
             setupProgressBar();
 

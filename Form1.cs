@@ -85,7 +85,8 @@ namespace INFOIBV
                     int sigma;
                     if (Int32.TryParse(thresholdBox.Text, out sigma))
                     {
-                        showImage(linearFiltering2(InputImage,gaussianFilter(5,sigma)));
+                        int size =11;//Gaussian kernel size
+                        showImage(linearFiltering(InputImage,gaussianFilter(size,sigma)));
                     }
                     else
                     {
@@ -96,12 +97,12 @@ namespace INFOIBV
                     showImage(nonLinearFiltering(InputImage,3));
                     break;
                 case 6:
-                    showImage(edgeDetection(InputImage,new double[,]{{ -1, 0, 1 }, //Edge detection using sobel operator
+                    showImage(edgeDetection(InputImage,new Kernel(new double[,]{{ -1, 0, 1 }, //Edge detection using sobel operator
                                                                      { -2, 0, 2 },
-                                                                     { -1, 0, 1 }},
-                                                        new double[,] { {  1,  2,  1 },
+                                                                     { -1, 0, 1 }},3),
+                                                        new Kernel(new double[,] { {  1,  2,  1 },
                                                                         {  0,  0,  0 }, 
-                                                                        { -1, -2, -1 }}));
+                                                                        { -1, -2, -1 }},3)));
                     break;
                 case 7:
                     int ath;
@@ -234,50 +235,13 @@ namespace INFOIBV
 
             return new Kernel(kernel,size);
         }
-        private Color[,] linearFiltering (Bitmap InputImage,double[,] kernel){
+        private Color[,] linearFiltering (Bitmap InputImage, Kernel kernell){
             if (OutputImage != null) OutputImage.Dispose();                             // Reset output image
                OutputImage = new Bitmap(InputImage.Size.Width, InputImage.Size.Height);    // Create new output image
                Color[,] Image2 = new Color[InputImage.Size.Width, InputImage.Size.Height];  // Create array to speed-up operations (Bitmap functions are very slow)
 
             convertImageToString(Image2);
             setupProgressBar();
-            int size =(int)( 5/2); //problem in retrieving size of kernel. TODO: create  obj Kernel thata contains size of kernel
-
-            for (var x = size; x < InputImage.Size.Width - size; x++)
-            {
-                for (var y = size; y < InputImage.Size.Height - size; y++)
-                {
-                    int r = 0, b = 0, g = 0;
-
-                    for (var i = 0; i < 3; i++)
-                    {
-                        for (var j = 0; j < 3; j++)
-                        {   //Convolution
-                            var temp = InputImage.GetPixel(x + i - size, y + j - size);
-
-                            r +=(int) (kernel[i, j] * temp.R);
-                            g += (int) (kernel[i, j] * temp.G);
-                            b +=(int) (kernel[i, j] * temp.B);
-                        }
-                    }
-                    Color updatedColor = Color.FromArgb(r, g, b);       // Set average to R, G and B values
-                    Image2[x, y] = updatedColor;                        // Set the new pixel color at coordinate (x,y)
-                    progressBar.PerformStep();                                                  // Increment progress bar
-                            
-                }
-            }
-
-            return Image2;
-            // convertStringToImage(Image2);
-             //printImage(Image2);
-        }
-        private Color[,] linearFiltering2 (Bitmap InputImage, Kernel kernell){
-            if (OutputImage != null) OutputImage.Dispose();                             // Reset output image
-               OutputImage = new Bitmap(InputImage.Size.Width, InputImage.Size.Height);    // Create new output image
-               Color[,] Image2 = new Color[InputImage.Size.Width, InputImage.Size.Height];  // Create array to speed-up operations (Bitmap functions are very slow)
-
-            convertImageToString(Image2);
-           // setupProgressBar();
             double[,] kernel = kernell.getMatrix();
             int size =(int)(kernell.getSize()/2);
 
@@ -312,7 +276,8 @@ namespace INFOIBV
                         }
                     }
                     Color updatedColor = Color.FromArgb(r, g, b);       // Set average to R, G and B values
-                    Image2[x, y] = updatedColor;                        // Set the new pixel color at coordinate (x,y)
+                    Image2[x, y] = updatedColor;// Set the new pixel color at coordinate (x,y)
+                     progressBar.PerformStep();
                             
                 }
             }
@@ -380,7 +345,7 @@ namespace INFOIBV
             return Image;
                     
         }
-        private Color[,] edgeDetection(Bitmap inputImage,double[,] edgeKernelX,double[,] edgekernelY){
+        private Color[,] edgeDetection(Bitmap inputImage,Kernel edgeKernelX,Kernel edgekernelY){
             Color[,] outputImage = new Color[InputImage.Size.Width, InputImage.Size.Height];
             Color[,] dx = linearFiltering(InputImage,edgeKernelX) ;  
             Color[,] dy= linearFiltering(InputImage,edgekernelY);

@@ -131,7 +131,17 @@
             "Linear filtering",
             "Non linear filtering",
             "Edge detection",
-            "Thresholding"});
+            "Thresholding",
+            "Structuring element",
+            "Erosion",
+            "Dialation",
+            "Opening",
+            "Closing",
+            "Complement",
+            "AND",
+            "OR",
+            "Value counting",
+            "Boundary Trace"});
             this.selectFunctionBox.Location = new System.Drawing.Point(402, 13);
             this.selectFunctionBox.Name = "selectFunctionBox";
             this.selectFunctionBox.Size = new System.Drawing.Size(127, 21);

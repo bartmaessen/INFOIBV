@@ -14,6 +14,7 @@ namespace INFOIBV
     public partial class INFOIBV : Form
     {
         private Bitmap InputImage;
+        private Bitmap InputImage2;
         private Bitmap OutputImage;
 
         public INFOIBV()
@@ -42,7 +43,11 @@ namespace INFOIBV
             {
                 string file = openImageDialog.FileName;                     // Get the file name
                 imageFileName.Text = file;                                  // Show file name
-                if (InputImage != null) InputImage.Dispose();               // Reset image
+                if (InputImage != null)                                     
+                {
+                    InputImage2 = InputImage;                               // Remember the previous input
+                    InputImage.Dispose();                                   // Reset image
+                }
                 InputImage = new Bitmap(file);                              // Create new Bitmap from file
                 if (InputImage.Size.Height <= 0 || InputImage.Size.Width <= 0 ||
                     InputImage.Size.Height > 512 || InputImage.Size.Width > 512) // Dimension check
@@ -53,7 +58,7 @@ namespace INFOIBV
         }
         public void selectFuncionBox_SelectedIndexChanged(object sender, System.EventArgs e)
         {
-            if (selectFunctionBox.SelectedIndex == 7 || selectFunctionBox.SelectedIndex == 4)  //Move selectionbar and show a textbox when Linear filter or Thresholding are selected
+            if (selectFunctionBox.SelectedIndex == 7 || selectFunctionBox.SelectedIndex == 4 || selectFunctionBox.SelectedIndex == 16)  //Move selectionbar and show a textbox when Linear filter or Thresholding are selected
                 {
                 this.selectFunctionBox.Location = new System.Drawing.Point(357, 13);
                 this.thresholdBox.Visible = true;
@@ -111,6 +116,26 @@ namespace INFOIBV
                         if (ath >= 0 && ath < 255)
                         {
                            showImage(thresholding(ath));
+                        }
+                    }
+                    else
+                    {
+                        MessageBox.Show("Insert an integer from 0 untill 255");
+                    }
+                    break;
+                case 14:
+                    showImage(applyAND(InputImage, InputImage2));
+                    break;
+                case 15:
+                    showImage(applyOR(InputImage, InputImage2));
+                    break;
+                case 16:
+                    int value;
+                    if (Int32.TryParse(thresholdBox.Text, out value))
+                    {
+                        if (value >= 0 && value < 256)
+                        {
+                            showImage(valueCounting(InputImage, value));
                         }
                     }
                     else
@@ -382,7 +407,84 @@ namespace INFOIBV
             return outputImage;
        
         }
- 
+        private Color[,] applyAND(Bitmap InputImage, Bitmap InputImage2){
+            if (OutputImage != null) OutputImage.Dispose();                              // Reset output image
+            OutputImage = new Bitmap(InputImage.Size.Width, InputImage.Size.Height);     // Create new output image
+            Color[,] Image = new Color[InputImage.Size.Width, InputImage.Size.Height];  // Create array to speed-up operations (Bitmap functions are very slow)
+            Color[,] Image2 = new Color[InputImage2.Size.Width, InputImage2.Size.Height];
+
+            convertImageToString(Image);
+            setupProgressBar();
+
+            for (int x = 0; x < InputImage.Size.Width; x++)
+            {
+                for (int y = 0; y < InputImage.Size.Height; y++)
+                {
+                    Color pixelColor = Image[x, y];                                             // Get the pixel color at coordinate (x,y)
+                    Color pixelColor2 = Image2[x, y];
+                    Color updatedColor;
+                    if (pixelColor.R == 0 && pixelColor2.R == 0) { updatedColor = Color.FromArgb(0, 0, 0); }
+                    else { updatedColor = Color.FromArgb(255, 255, 255); }
+                    Image[x, y] = updatedColor;                                                 // Set the new pixel color at coordinate (x,y)
+                    progressBar.PerformStep();                                                   // Increment progress bar
+                }
+
+            }
+
+            return Image;
+
+        }
+        private Color[,] applyOR(Bitmap InputImage, Bitmap InputImage2)
+        {
+            if (OutputImage != null) OutputImage.Dispose();                              // Reset output image
+            OutputImage = new Bitmap(InputImage.Size.Width, InputImage.Size.Height);     // Create new output image
+            Color[,] Image = new Color[InputImage.Size.Width, InputImage.Size.Height];  // Create array to speed-up operations (Bitmap functions are very slow)
+            Color[,] Image2 = new Color[InputImage2.Size.Width, InputImage2.Size.Height];
+
+            convertImageToString(Image);
+            setupProgressBar();
+
+            for (int x = 0; x < InputImage.Size.Width; x++)
+            {
+                for (int y = 0; y < InputImage.Size.Height; y++)
+                {
+                    Color pixelColor = Image[x, y];                                             // Get the pixel color at coordinate (x,y)
+                    Color pixelColor2 = Image2[x, y];
+                    Color updatedColor;
+                    if ((pixelColor.R == 1 && pixelColor2.R == 0) || (pixelColor.R == 0 && pixelColor2.R == 1))  { updatedColor = Color.FromArgb(0, 0, 0); }
+                    else { updatedColor = Color.FromArgb(255, 255, 255); }
+                    Image[x, y] = updatedColor;                                                 // Set the new pixel color at coordinate (x,y)
+                    progressBar.PerformStep();                                                  // Increment progress bar
+                }
+            }
+
+            return Image;
+
+        }
+        private Color[,] valueCounting(Bitmap InputImage, int countValue)
+        {
+            if (OutputImage != null) OutputImage.Dispose();                             // Reset output image
+            OutputImage = new Bitmap(InputImage.Size.Width, InputImage.Size.Height);    // Create new output image
+            Color[,] Image = new Color[InputImage.Size.Width, InputImage.Size.Height];  // Create array to speed-up operations (Bitmap functions are very slow)
+
+            convertImageToString(Image);
+            setupProgressBar();
+
+            // Inversion of image
+            for (int x = 0; x < InputImage.Size.Width; x++)
+            {
+                for (int y = 0; y < InputImage.Size.Height; y++)
+                {
+                    Color pixelColor = Image[x, y];                                                                     // Get the pixel color at coordinate (x,y)
+                    Color updatedColor = Color.FromArgb(pixelColor.R, pixelColor.G, pixelColor.B);
+                    Image[x, y] = updatedColor;                                                                         // Set the new pixel color at coordinate (x,y)
+                    progressBar.PerformStep();                                                                          // Increment progress bar
+                }
+            }
+
+            return Image;
+        }
+
         private void saveButton_Click(object sender, EventArgs e)
         {
             if (OutputImage == null) return;                                // Get out if no output image

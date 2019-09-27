@@ -55,7 +55,7 @@ namespace INFOIBV
         public void selectFuncionBox_SelectedIndexChanged(object sender, System.EventArgs e)
         {
             this.resultTextBox.Visible = false;
-            if (selectFunctionBox.SelectedIndex == 7 || selectFunctionBox.SelectedIndex == 4 || selectFunctionBox.SelectedIndex == 16)  //Move selectionbar and show a textbox when Linear filter or Thresholding are selected
+            if (selectFunctionBox.SelectedIndex == 10)  //Move selectionbar and show a textbox when Linear filter or Thresholding are selected
                 {
                 this.selectFunctionBox.Location = new System.Drawing.Point(357, 13);
                 this.thresholdBox.Visible = true;

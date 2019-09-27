@@ -45,7 +45,7 @@ namespace INFOIBV
                 imageFileName.Text = file;                                  // Show file name
                 if (InputImage != null)                                     
                 {
-                    InputImage2 = InputImage;                               // Remember the previous input
+                    InputImage2 = (Bitmap)InputImage.Clone();               // Remember the previous input
                     InputImage.Dispose();                                   // Reset image
                 }
                 InputImage = new Bitmap(file);                              // Create new Bitmap from file
@@ -53,11 +53,15 @@ namespace INFOIBV
                     InputImage.Size.Height > 512 || InputImage.Size.Width > 512) // Dimension check
                     MessageBox.Show("Error in image dimensions (have to be > 0 and <= 512)");
                 else
-                    pictureBox1.Image = (Image) InputImage;                 // Display input image
+                {
+                    pictureBox1.Image = (Image)InputImage;                 // Display input image
+                    pictureBox2.Image = (Image)InputImage2;
+                }
             }
         }
         public void selectFuncionBox_SelectedIndexChanged(object sender, System.EventArgs e)
         {
+            this.resultTextBox.Visible = false;
             if (selectFunctionBox.SelectedIndex == 7 || selectFunctionBox.SelectedIndex == 4 || selectFunctionBox.SelectedIndex == 16)  //Move selectionbar and show a textbox when Linear filter or Thresholding are selected
                 {
                 this.selectFunctionBox.Location = new System.Drawing.Point(357, 13);
@@ -71,6 +75,7 @@ namespace INFOIBV
         }
         private void applyButton_Click(object sender, EventArgs e)
         {
+            this.resultTextBox.Visible = false;
             if (InputImage == null) return;  // Get out if no input image
             switch (selectFunctionBox.SelectedIndex)
             {
@@ -113,7 +118,7 @@ namespace INFOIBV
                     int ath;
                     if (Int32.TryParse(thresholdBox.Text, out ath))
                     {
-                        if (ath >= 0 && ath < 255)
+                        if (ath >= 0 && ath < 256)
                         {
                            showImage(thresholding(ath));
                         }
@@ -414,6 +419,7 @@ namespace INFOIBV
             Color[,] Image2 = new Color[InputImage2.Size.Width, InputImage2.Size.Height];
 
             convertImageToString(Image);
+            convertImageToString(Image2);
             setupProgressBar();
 
             for (int x = 0; x < InputImage.Size.Width; x++)
@@ -426,7 +432,7 @@ namespace INFOIBV
                     if (pixelColor.R == 0 && pixelColor2.R == 0) { updatedColor = Color.FromArgb(0, 0, 0); }
                     else { updatedColor = Color.FromArgb(255, 255, 255); }
                     Image[x, y] = updatedColor;                                                 // Set the new pixel color at coordinate (x,y)
-                    progressBar.PerformStep();                                                   // Increment progress bar
+                    progressBar.PerformStep();                                                  // Increment progress bar
                 }
 
             }
@@ -442,6 +448,7 @@ namespace INFOIBV
             Color[,] Image2 = new Color[InputImage2.Size.Width, InputImage2.Size.Height];
 
             convertImageToString(Image);
+            convertImageToString(Image2);
             setupProgressBar();
 
             for (int x = 0; x < InputImage.Size.Width; x++)
@@ -470,6 +477,7 @@ namespace INFOIBV
             convertImageToString(Image);
             setupProgressBar();
 
+            int countedValue = 0;
             // Inversion of image
             for (int x = 0; x < InputImage.Size.Width; x++)
             {
@@ -477,10 +485,14 @@ namespace INFOIBV
                 {
                     Color pixelColor = Image[x, y];                                                                     // Get the pixel color at coordinate (x,y)
                     Color updatedColor = Color.FromArgb(pixelColor.R, pixelColor.G, pixelColor.B);
+
+                    if (pixelColor.R == countValue) { countedValue++; }                                                 // Count the set value
                     Image[x, y] = updatedColor;                                                                         // Set the new pixel color at coordinate (x,y)
                     progressBar.PerformStep();                                                                          // Increment progress bar
                 }
             }
+            this.resultTextBox.Visible = true;
+            this.resultTextBox.Text = countedValue.ToString();
 
             return Image;
         }

@@ -40,6 +40,7 @@
             this.selectFunctionBox = new System.Windows.Forms.ComboBox();
             this.backgroundWorker1 = new System.ComponentModel.BackgroundWorker();
             this.thresholdBox = new System.Windows.Forms.TextBox();
+            this.resultTextBox = new System.Windows.Forms.TextBox();
             ((System.ComponentModel.ISupportInitialize)(this.pictureBox1)).BeginInit();
             ((System.ComponentModel.ISupportInitialize)(this.pictureBox2)).BeginInit();
             this.SuspendLayout();
@@ -158,11 +159,20 @@
             this.thresholdBox.TextAlign = System.Windows.Forms.HorizontalAlignment.Center;
             this.thresholdBox.Visible = false;
             // 
+            // resultTextBox
+            // 
+            this.resultTextBox.Location = new System.Drawing.Point(644, 13);
+            this.resultTextBox.Name = "resultTextBox";
+            this.resultTextBox.Size = new System.Drawing.Size(40, 20);
+            this.resultTextBox.TabIndex = 9;
+            this.resultTextBox.Visible = false;
+            // 
             // INFOIBV
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.ClientSize = new System.Drawing.Size(1052, 566);
+            this.Controls.Add(this.resultTextBox);
             this.Controls.Add(this.thresholdBox);
             this.Controls.Add(this.selectFunctionBox);
             this.Controls.Add(this.progressBar);
@@ -197,6 +207,7 @@
         private System.Windows.Forms.ComboBox selectFunctionBox;
         private System.ComponentModel.BackgroundWorker backgroundWorker1;
         private System.Windows.Forms.TextBox thresholdBox;
+        private System.Windows.Forms.TextBox resultTextBox;
     }
 }
 

@@ -9,8 +9,8 @@ namespace INFOIBV
 {
     public partial class INFOIBV : Form
     {
-        private Bitmap InputImage;
-        private Bitmap InputImage2;
+        private Bitmap InputImage = null;
+        private Bitmap InputImage2 = null;
         private Bitmap OutputImage;
 
         public INFOIBV()
@@ -93,36 +93,31 @@ namespace INFOIBV
                     return;
                     break;
                 case 1:
-                    Color[,] Image1 = new Color[InputImage.Size.Width, InputImage.Size.Height];  // Create array to speed-up operations (Bitmap functions are very slow)
-                    convertImageToString(Image1);
-                    showImage(erosionGray(Image1,structuringElementGrayscale('+',5)));
+                    showImage(erosion(InputImage,structuringElementGrayscale('+',5),null));
                     break;
                 case 2:
-                    //showImage(dilatation(InputImage,structuringElementGrayscale('+',5)));
-                    Color[,] Image2 = new Color[InputImage.Size.Width, InputImage.Size.Height];  // Create array to speed-up operations (Bitmap functions are very slow)
-                    convertImageToString(Image2);
-                    showImage(dilatationGray(Image2,structuringElementGrayscale('+',5)));
+                    showImage(dilatation(InputImage,structuringElementGrayscale('+',5),null));
                     break;
                 case 3:
-                    Color[,] Image3 = new Color[InputImage.Size.Width, InputImage.Size.Height];  // Create array to speed-up operations (Bitmap functions are very slow)
-                    convertImageToString(Image3);
-                    showImage(opening(Image3,structuringElementGrayscale('+',5)));
+                    showImage(opening(InputImage,structuringElementGrayscale('+',5)));
                     break;
                 case 4:
-                    Color[,] Image4 = new Color[InputImage.Size.Width, InputImage.Size.Height];  // Create array to speed-up operations (Bitmap functions are very slow)
-                    convertImageToString(Image4);
-                    showImage(closing(Image4,structuringElementGrayscale('+',5)));
+                    showImage(closing(InputImage,structuringElementGrayscale('+',5)));
                     break;
                 case 5:
-                    Color[,] Image5 = new Color[InputImage.Size.Width, InputImage.Size.Height];  // Create array to speed-up operations (Bitmap functions are very slow)
-                    convertImageToString(Image5);
                     showImage(colorInversion(InputImage));
                     break;
                 case 6:
-                    showImage(applyAND(InputImage, InputImage2));
+                    if(InputImage2 == null)
+                        MessageBox.Show("Insert a second image for this operation");
+                    else
+                        showImage(applyAND(InputImage, InputImage2));
                     break;
                 case 7:
-                    showImage(applyOR(InputImage, InputImage2));
+                    if(InputImage2 == null)
+                        MessageBox.Show("Insert a second image for this operation");
+                    else
+                        showImage(applyOR(InputImage, InputImage2));
                     break;
                 case 8:
                     int value;
@@ -211,7 +206,7 @@ namespace INFOIBV
 
                     return Image;
         }
-        private Color[,] erosion(Bitmap InputImage,StructElement structElement){// To adjust
+        private Color[,] erosion(Bitmap InputImage,StructElement structElement,Bitmap controlImage){// To adjust
             if (OutputImage != null) OutputImage.Dispose();                             // Reset output image
                     OutputImage = new Bitmap(InputImage.Size.Width, InputImage.Size.Height);    // Create new output image
                     Color[,] Image = new Color[InputImage.Size.Width, InputImage.Size.Height];  // Create array to speed-up operations (Bitmap functions are very slow)
@@ -220,13 +215,76 @@ namespace INFOIBV
                     
                     convertImageToString(Image);
                     setupProgressBar();
+                    
                     if(isBinary(Image,InputImage.Size.Width,InputImage.Size.Height)){
-                        output = erosionBinary(Image,structElement);
+                        if(controlImage == null)
+                            output = erosionBinary(Image,structElement);
+                        else
+                            output = geodesicErosionBinary(Image,structElement,controlImage);
                     }else{
-                        output = erosionGray(Image,structElement);
+                        if(controlImage == null)
+                            output = erosionGray(Image,structElement);
+                        else
+                            output = geodesicErosionGray(Image,structElement,controlImage);
                     }                                                                                       
                     return output;
 
+        }
+        private Color[,] geodesicErosionBinary(Color[,] Image,StructElement structElement,Bitmap controlImage){
+            if (OutputImage != null) OutputImage.Dispose();                             // Reset output image
+                    OutputImage = new Bitmap(InputImage.Size.Width, InputImage.Size.Height);    // Create new output image
+                    Color[,] controlImagee = new Color[InputImage2.Size.Width, InputImage2.Size.Height]; 
+                    int[,] structMatrix = structElement.getMatrix();
+                    Color[,] output =new Color[InputImage.Size.Width, InputImage.Size.Height];
+                    
+                    convertImageToString2(controlImagee);
+
+                    output = dilatationBinary(Image,structElement);
+                    output = myApplyOR(output,controlImagee);
+
+                    return output;             
+        } 
+        private Color[,] geodesicDilatationBinary(Color[,] Image,StructElement structElement,Bitmap controlImage){
+            if (OutputImage != null) OutputImage.Dispose();                             // Reset output image
+                    OutputImage = new Bitmap(InputImage.Size.Width, InputImage.Size.Height);    // Create new output image
+                    Color[,] controlImagee = new Color[InputImage2.Size.Width, InputImage2.Size.Height]; 
+                    int[,] structMatrix = structElement.getMatrix();
+                    Color[,] output =new Color[InputImage.Size.Width, InputImage.Size.Height];
+                    
+                    convertImageToString2(controlImagee);
+
+                    output = dilatationBinary(Image,structElement);
+                    output = myApplyAND(output,controlImagee);
+
+                    return output;             
+        }
+        private Color[,] geodesicErosionGray(Color[,] Image,StructElement structElement,Bitmap controlImage){
+            if (OutputImage != null) OutputImage.Dispose();                             // Reset output image
+                    OutputImage = new Bitmap(InputImage.Size.Width, InputImage.Size.Height);    // Create new output image
+                    Color[,] controlImagee = new Color[InputImage2.Size.Width, InputImage2.Size.Height]; 
+                    int[,] structMatrix = structElement.getMatrix();
+                    Color[,] output =new Color[InputImage.Size.Width, InputImage.Size.Height];
+                    
+                    convertImageToString2(controlImagee);
+
+                    output = erosionGray(Image,structElement);
+                    output = myApplyMax(output,controlImagee);
+
+                    return output;   
+        } 
+        private Color[,] geodesicDilatationGray(Color[,] Image,StructElement structElement,Bitmap controlImage){
+            if (OutputImage != null) OutputImage.Dispose();                             // Reset output image
+                    OutputImage = new Bitmap(InputImage.Size.Width, InputImage.Size.Height);    // Create new output image
+                    Color[,] controlImagee = new Color[InputImage2.Size.Width, InputImage2.Size.Height]; 
+                    int[,] structMatrix = structElement.getMatrix();
+                    Color[,] output =new Color[InputImage.Size.Width, InputImage.Size.Height];
+                    
+                    convertImageToString2(controlImagee);
+
+                    output = dilatationGray(Image,structElement);
+                    output = myApplyMin(output,controlImagee);
+
+                    return output;   
         }
         private Color[,] dilatationBinary(Color[,] Image,StructElement structElement){
             if (OutputImage != null) OutputImage.Dispose();                             // Reset output image
@@ -319,7 +377,7 @@ namespace INFOIBV
 
                     return output;
         }
-        private Color[,] dilatation(Bitmap InputImage,StructElement structElement){
+        private Color[,] dilatation(Bitmap InputImage,StructElement structElement,Bitmap controlImage){
             if (OutputImage != null) OutputImage.Dispose();                             // Reset output image
                     OutputImage = new Bitmap(InputImage.Size.Width, InputImage.Size.Height);    // Create new output image
                     Color[,] Image = new Color[InputImage.Size.Width, InputImage.Size.Height];  // Create array to speed-up operations (Bitmap functions are very slow)
@@ -329,18 +387,26 @@ namespace INFOIBV
                     convertImageToString(Image);
                     setupProgressBar();
                     if(isBinary(Image,InputImage.Size.Width,InputImage.Size.Height)){
-                        output = dilatationBinary(Image,structElement);
+                        if(controlImage == null)
+                            output = dilatationBinary(Image,structElement);
+                        else
+                            output = geodesicDilatationBinary(Image,structElement,controlImage);
                     }else{
-                        output = dilatationGray(Image,structElement);
-                    }                                                                                       
+                        if(controlImage == null)
+                            output = dilatationGray(Image,structElement);
+                        else
+                            output = geodesicDilatationGray(Image,structElement,controlImage);
+                    }  
+                                                                                                   
                     return output;
         }
-        private Color[,] opening(Color[,]Image,StructElement structElement){
+        private Color[,] opening(Bitmap InputImage,StructElement structElement){
             if (OutputImage != null) OutputImage.Dispose();                             // Reset output image
                     OutputImage = new Bitmap(InputImage.Size.Width, InputImage.Size.Height);    // Create new output image
+                    Color[,] Image = new Color[InputImage.Size.Width, InputImage.Size.Height];  // Create array to speed-up operations (Bitmap functions are very slow)
                     Color[,] output = new Color[InputImage.Size.Width, InputImage.Size.Height];  // Create array to speed-up operations (Bitmap functions are very slow)
 
-                    //convertImageToString(Image);
+                    convertImageToString(Image);
                     setupProgressBar();
                     if(isBinary(Image,InputImage.Size.Width,InputImage.Size.Height)){
                         output = erosionBinary(Image,structElement);
@@ -353,12 +419,13 @@ namespace INFOIBV
                     
                     return output;
         }
-        private Color[,] closing(Color[,]Image,StructElement structElement){
-            if (OutputImage != null) OutputImage.Dispose();                             // Reset output image
+        private Color[,] closing(Bitmap InputImage,StructElement structElement){
+             if (OutputImage != null) OutputImage.Dispose();                             // Reset output image
                     OutputImage = new Bitmap(InputImage.Size.Width, InputImage.Size.Height);    // Create new output image
+                    Color[,] Image = new Color[InputImage.Size.Width, InputImage.Size.Height];  // Create array to speed-up operations (Bitmap functions are very slow)
                     Color[,] output = new Color[InputImage.Size.Width, InputImage.Size.Height];  // Create array to speed-up operations (Bitmap functions are very slow)
 
-                    //convertImageToString(Image);
+                    convertImageToString(Image);
                     setupProgressBar();
                     if(isBinary(Image,InputImage.Size.Width,InputImage.Size.Height)){
                         output = dilatationBinary(Image,structElement);
@@ -405,7 +472,7 @@ namespace INFOIBV
         {
             if (OutputImage != null) OutputImage.Dispose();                              // Reset output image
             OutputImage = new Bitmap(InputImage.Size.Width, InputImage.Size.Height);     // Create new output image
-            Color[,] Image = new Color[InputImage.Size.Width, InputImage.Size.Height];  // Create array to speed-up operations (Bitmap functions are very slow)
+            Color[,] Image = new Color[InputImage.Size.Width, InputImage.Size.Height]; // Create array to speed-up operations (Bitmap functions are very slow)
             Color[,] Image2 = new Color[InputImage2.Size.Width, InputImage2.Size.Height];
 
             convertImageToString(Image);
@@ -416,6 +483,8 @@ namespace INFOIBV
             {
                 for (int y = 0; y < InputImage.Size.Height; y++)
                 {
+                    if(x< InputImage2.Size.Width && y<InputImage2.Size.Width){           //This condition is useful when you want to do an Or o
+                                                                                         // a AND of Images with diffrent sizes
                     Color pixelColor = Image[x, y];                                             // Get the pixel color at coordinate (x,y)
                     Color pixelColor2 = Image2[x, y];
                     Color updatedColor;
@@ -423,6 +492,34 @@ namespace INFOIBV
                     else { updatedColor = Color.FromArgb(255, 255, 255); }
                     Image[x, y] = updatedColor;                                                 // Set the new pixel color at coordinate (x,y)
                     progressBar.PerformStep();                                                  // Increment progress bar
+                        }
+                }
+
+            }
+
+            return Image;
+
+        }
+        private Color[,] myApplyAND(Color[,] Image, Color[,] Image2)
+        {
+            if (OutputImage != null) OutputImage.Dispose();                              // Reset output image
+            OutputImage = new Bitmap(InputImage.Size.Width, InputImage.Size.Height);     // Create new output image
+            setupProgressBar();
+
+            for (int x = 0; x < InputImage.Size.Width; x++)
+            {
+                for (int y = 0; y < InputImage.Size.Height; y++)
+                {
+                    if(x< InputImage2.Size.Width && y<InputImage2.Size.Width){           //This condition is useful when you want to do an Or o
+                                                                                         // a AND of Images with diffrent sizes
+                    Color pixelColor = Image[x, y];                                             // Get the pixel color at coordinate (x,y)
+                    Color pixelColor2 = Image2[x, y];
+                    Color updatedColor;
+                    if (pixelColor.R == 0 && pixelColor2.R == 0) { updatedColor = Color.FromArgb(0, 0, 0); }
+                    else { updatedColor = Color.FromArgb(255, 255, 255); }
+                    Image[x, y] = updatedColor;                                                 // Set the new pixel color at coordinate (x,y)
+                    progressBar.PerformStep();                                                  // Increment progress bar
+                        }
                 }
 
             }
@@ -444,19 +541,101 @@ namespace INFOIBV
             for (int x = 0; x < InputImage.Size.Width; x++)
             {
                 for (int y = 0; y < InputImage.Size.Height; y++)
-                {
-                    Color pixelColor = Image[x, y];                                             // Get the pixel color at coordinate (x,y)
-                    Color pixelColor2 = Image2[x, y];
-                    Color updatedColor;
-                    if ((pixelColor.R == 255 && pixelColor2.R == 0) || (pixelColor.R == 0 && pixelColor2.R == 255)) { updatedColor = Color.FromArgb(0, 0, 0); }
-                    else { updatedColor = Color.FromArgb(255, 255, 255); }
-                    Image[x, y] = updatedColor;                                                 // Set the new pixel color at coordinate (x,y)
-                    progressBar.PerformStep();                                                  // Increment progress bar
+                {   
+                    if(x< InputImage2.Size.Width && y < InputImage2.Size.Height){
+                        Color pixelColor = Image[x, y];                                             // Get the pixel color at coordinate (x,y)
+                        Color pixelColor2 = Image2[x, y];
+                        Color updatedColor;
+                        if ((pixelColor.R == 255 && pixelColor2.R == 0) || (pixelColor.R == 0 && pixelColor2.R == 255)) { updatedColor = Color.FromArgb(0, 0, 0); }
+                        else { updatedColor = Color.FromArgb(255, 255, 255); }
+                        Image[x, y] = updatedColor;                                                 // Set the new pixel color at coordinate (x,y)
+                        progressBar.PerformStep();                                                   // Increment progress bar
+
+                    }
                 }
             }
 
             return Image;
 
+        }
+        private Color[,] myApplyOR(Color[,] Image, Color[,] Image2)
+        {
+            if (OutputImage != null) OutputImage.Dispose();                              // Reset output image
+            OutputImage = new Bitmap(InputImage.Size.Width, InputImage.Size.Height);     // Create new output image
+
+            setupProgressBar();
+
+            for (int x = 0; x < InputImage.Size.Width; x++)
+            {
+                for (int y = 0; y < InputImage.Size.Height; y++)
+                {   
+                    if(x< InputImage2.Size.Width && y < InputImage2.Size.Height){
+                        Color pixelColor = Image[x, y];                                             // Get the pixel color at coordinate (x,y)
+                        Color pixelColor2 = Image2[x, y];
+                        Color updatedColor;
+                        if ((pixelColor.R == 255 && pixelColor2.R == 0) || (pixelColor.R == 0 && pixelColor2.R == 255)) { updatedColor = Color.FromArgb(0, 0, 0); }
+                        else { updatedColor = Color.FromArgb(255, 255, 255); }
+                        Image[x, y] = updatedColor;                                                 // Set the new pixel color at coordinate (x,y)
+                        progressBar.PerformStep();                                                   // Increment progress bar
+
+                    }
+                }
+            }
+
+            return Image;
+
+        }
+        private Color[,] myApplyMin(Color[,] Image, Color[,] Image2)
+        {
+            if (OutputImage != null) OutputImage.Dispose();                              // Reset output image
+            OutputImage = new Bitmap(InputImage.Size.Width, InputImage.Size.Height);     // Create new output image
+
+            setupProgressBar();
+
+            for (int x = 0; x < InputImage.Size.Width; x++)
+            {
+                for (int y = 0; y < InputImage.Size.Height; y++)
+                {   
+                    if(x< InputImage2.Size.Width && y < InputImage2.Size.Height){
+                        Color pixelColor = Image[x, y];                                             // Get the pixel color at coordinate (x,y)
+                        Color pixelColor2 = Image2[x, y];
+                        Color updatedColor;
+                        if (pixelColor.R<= pixelColor2.R) { updatedColor = pixelColor; }
+                        else { updatedColor = pixelColor2; }
+                        Image[x, y] = updatedColor;                                                 // Set the new pixel color at coordinate (x,y)
+                        progressBar.PerformStep();                                                   // Increment progress bar
+
+                    }
+                }
+            }
+
+            return Image;
+        }
+        private Color[,] myApplyMax(Color[,] Image, Color[,] Image2)
+        {
+            if (OutputImage != null) OutputImage.Dispose();                              // Reset output image
+            OutputImage = new Bitmap(InputImage.Size.Width, InputImage.Size.Height);     // Create new output image
+
+            setupProgressBar();
+
+            for (int x = 0; x < InputImage.Size.Width; x++)
+            {
+                for (int y = 0; y < InputImage.Size.Height; y++)
+                {   
+                    if(x< InputImage2.Size.Width && y < InputImage2.Size.Height){
+                        Color pixelColor = Image[x, y];                                             // Get the pixel color at coordinate (x,y)
+                        Color pixelColor2 = Image2[x, y];
+                        Color updatedColor;
+                        if (pixelColor.R >= pixelColor2.R) { updatedColor = pixelColor; }
+                        else { updatedColor = pixelColor2; }
+                        Image[x, y] = updatedColor;                                                 // Set the new pixel color at coordinate (x,y)
+                        progressBar.PerformStep();                                                   // Increment progress bar
+
+                    }
+                }
+            }
+
+            return Image;
         }
         private Bitmap valueCounting(Bitmap InputImage, int countValue)
         {

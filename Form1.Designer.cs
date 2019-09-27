@@ -1,5 +1,8 @@
 ﻿namespace INFOIBV
 {
+    /* 
+ * By Bart Maessen 4033620 & Teddy Gyabaah 6879136
+ */
     partial class INFOIBV
     {
         /// <summary>
@@ -131,7 +134,9 @@
             "Linear filtering",
             "Non linear filtering",
             "Edge detection",
-            "Thresholding"});
+            "Thresholding",
+             "Erosion",
+             "Dilatation"});
             this.selectFunctionBox.Location = new System.Drawing.Point(402, 13);
             this.selectFunctionBox.Name = "selectFunctionBox";
             this.selectFunctionBox.Size = new System.Drawing.Size(127, 21);

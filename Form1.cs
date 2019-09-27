@@ -8,7 +8,9 @@ using System.Linq;
 using System.Text;
 using System.Windows.Forms;
 using System.IO;
-
+/* 
+ * By Bart Maessen 4033620 & Teddy Gyabaah 6879136
+ */
 namespace INFOIBV
 {
     public partial class INFOIBV : Form
@@ -29,6 +31,21 @@ namespace INFOIBV
             }
 
             public double[,] getMatrix (){
+                return this.matrix;
+            }
+            public int getSize(){
+                return this.size;
+            }
+        }
+        public class StructElement{
+            int[,] matrix;
+            int size;
+            public StructElement(int[,] matrix, int size){
+                this.matrix = matrix;
+                this.size = size;
+            }
+
+            public int[,] getMatrix (){
                 return this.matrix;
             }
             public int getSize(){
@@ -118,31 +135,23 @@ namespace INFOIBV
                         MessageBox.Show("Insert an integer from 0 untill 255");
                     }
                     break;
+                case 8:
+                    Color[,] Image1 = new Color[InputImage.Size.Width, InputImage.Size.Height];  // Create array to speed-up operations (Bitmap functions are very slow)
+                    convertImageToString(Image1);
+                    showImage(erosionGray(Image1,structuringElementGrayscale('+',5)));
+                    break;
+                case 9:
+                    //showImage(dilatation(InputImage,structuringElementGrayscale('+',5)));
+                    Color[,] Image = new Color[InputImage.Size.Width, InputImage.Size.Height];  // Create array to speed-up operations (Bitmap functions are very slow)
+                    convertImageToString(Image);
+                    showImage(dilatationGray(Image,structuringElementGrayscale('+',5)));
+                    break;
                 default:
                     return;
             }
         }
-
-        private Color[,] colorInversion(Bitmap InputImage){
-             if (OutputImage != null) OutputImage.Dispose();                             // Reset output image
-                    OutputImage = new Bitmap(InputImage.Size.Width, InputImage.Size.Height);    // Create new output image
-                    Color[,] Image = new Color[InputImage.Size.Width, InputImage.Size.Height];  // Create array to speed-up operations (Bitmap functions are very slow)
-
-                    convertImageToString(Image);
-                    setupProgressBar();
-
-                    // Inversion of image
-                    for (int x = 0; x < InputImage.Size.Width; x++){
-                        for (int y = 0; y < InputImage.Size.Height; y++){
-                            Color pixelColor = Image[x, y];                                                                     // Get the pixel color at coordinate (x,y)
-                            Color updatedColor = Color.FromArgb(255 - pixelColor.R, 255 - pixelColor.G, 255 - pixelColor.B);    // Negative image
-                            Image[x, y] = updatedColor;                                                                         // Set the new pixel color at coordinate (x,y)
-                            progressBar.PerformStep();                                                                          // Increment progress bar
-                        }
-                    }
-
-                    return Image;
-        }
+        
+        //Assignment1
         private Color[,] grayscaleConversion(Bitmap InputImage){
             if (OutputImage != null) OutputImage.Dispose();                             // Reset output image
                     OutputImage = new Bitmap(InputImage.Size.Width, InputImage.Size.Height);    // Create new output image
@@ -382,7 +391,260 @@ namespace INFOIBV
             return outputImage;
        
         }
- 
+
+        //Assignment2
+        private StructElement structuringElementBinary(char shape, int size){
+            int[,] output = new int[size,size];
+            if(shape == '+'){
+                for(int i=0; i<size;i++){
+                   for(int j=0;j<size;j++){
+                        if((i==0 && j==0)||(i==0 && j==size-1) || (i==size-1 && j==0) || (i==size-1 && j== size-1))
+                            output[i,j] = 0;
+                        else
+                            output[i,j] = 1;
+                    }
+                }
+            }
+            else if(shape == 'r'){                                  //'r' stands for rectangle
+              for(int i=0;i<size;i++){
+                 for(int j=0;j<size;j++){
+                        output[i,j]=1;
+                  }
+              }
+            }
+            return new StructElement(output,size);
+        }
+        private StructElement structuringElementGrayscale(char shape, int size){
+            int[,] output = new int[size,size];
+            if(shape == '+'){
+                for(int i=0; i<size;i++){
+                   for(int j=0;j<size;j++){
+                        if((i==0 && j==0)||(i==0 && j==size-1) || (i==size-1 && j==0) || (i==size-1 && j== size-1))
+                            output[i,j] = -256;
+                        else
+                            output[i,j] = 0;
+                    }
+                }
+            }
+            else if(shape == 'r'){                                  //'r' stands for rectangle
+              for(int i=0;i<size;i++){
+                 for(int j=0;j<size;j++){
+                        output[i,j]=0;
+                  }
+              }
+            }
+            return new StructElement(output,size);
+        }
+        private Color[,] colorInversion(Bitmap InputImage){
+             if (OutputImage != null) OutputImage.Dispose();                             // Reset output image
+                    OutputImage = new Bitmap(InputImage.Size.Width, InputImage.Size.Height);    // Create new output image
+                    Color[,] Image = new Color[InputImage.Size.Width, InputImage.Size.Height];  // Create array to speed-up operations (Bitmap functions are very slow)
+
+                    convertImageToString(Image);
+                    setupProgressBar();
+
+                    // Inversion of image
+                    for (int x = 0; x < InputImage.Size.Width; x++){
+                        for (int y = 0; y < InputImage.Size.Height; y++){
+                            Color pixelColor = Image[x, y];                                                                     // Get the pixel color at coordinate (x,y)
+                            Color updatedColor = Color.FromArgb(255 - pixelColor.R, 255 - pixelColor.G, 255 - pixelColor.B);    // Negative image
+                            Image[x, y] = updatedColor;                                                                         // Set the new pixel color at coordinate (x,y)
+                            progressBar.PerformStep();                                                                          // Increment progress bar
+                        }
+                    }
+
+                    return Image;
+        }
+        private Color[,] erosion(Bitmap InputImage,StructElement structElement){// To adjust
+            if (OutputImage != null) OutputImage.Dispose();                             // Reset output image
+                    OutputImage = new Bitmap(InputImage.Size.Width, InputImage.Size.Height);    // Create new output image
+                    Color[,] Image = new Color[InputImage.Size.Width, InputImage.Size.Height];  // Create array to speed-up operations (Bitmap functions are very slow)
+                    Color[,] output = new Color[InputImage.Size.Width, InputImage.Size.Height]; 
+                    int[,] structMatrix = structElement.getMatrix();
+                    
+                    convertImageToString(Image);
+                    setupProgressBar();
+                    if(isBinary(Image,InputImage.Size.Width,InputImage.Size.Height)){
+                        output = erosionBinary(Image,structElement);
+                    }else{
+                        output = erosionGray(Image,structElement);
+                    }                                                                                       
+                    return output;
+
+        }
+        private Color[,] dilatationBinary(Color[,] Image,StructElement structElement){
+            if (OutputImage != null) OutputImage.Dispose();                             // Reset output image
+                    OutputImage = new Bitmap(InputImage.Size.Width, InputImage.Size.Height);    // Create new output image
+                    //Color[,] Image = new Color[InputImage.Size.Width, InputImage.Size.Height];  // Create array to speed-up operations (Bitmap functions are very slow)
+                    Color[,] output = new Color[InputImage.Size.Width, InputImage.Size.Height];
+                    //convertImageToString(Image);
+                    setupProgressBar();
+                    int[,] H = structElement.getMatrix();
+                    int Hsize = structElement.getSize();
+                    for(int i =0;i<InputImage.Size.Width;i++){
+                        for(int j=0;j<InputImage.Size.Height;j++){
+                            output[i,j] = Color.FromArgb(255,255,255);
+                        }
+                    }
+                   for(int i=0;i<Hsize;i++){
+                        for(int j=0;j<Hsize;j++){
+                         if(H[i,j] == 1){
+                          for(int u =0;u< InputImage.Size.Width-Hsize;u++){
+                             for(int v=0;v<InputImage.Size.Height-Hsize;v++){
+                              if(Image[u,v].R == 0){
+                                output[u+i,v+j]= Color.FromArgb(0,0,0);
+                                
+                              }
+                             }
+                            }
+                         }
+                        }
+                    }
+
+            return output;
+                    
+        }
+        private Color[,] erosionBinary(Color[,] Image,StructElement structElement){
+            if (OutputImage != null) OutputImage.Dispose();                             // Reset output image
+                    OutputImage = new Bitmap(InputImage.Size.Width, InputImage.Size.Height);    // Create new output image
+                    //Color[,] Image = new Color[InputImage.Size.Width, InputImage.Size.Height];  // Create array to speed-up operations (Bitmap functions are very slow)
+                    Color[,] output = colorInversion(InputImage);
+                    //convertImageToString(Image);
+                    setupProgressBar();
+
+                    return myColorInversion(dilatationBinary(output,structElement));
+
+        }
+        private Color[,] erosionGray(Color[,] Image,StructElement structElement){
+            if (OutputImage != null) OutputImage.Dispose();                             // Reset output image
+                    OutputImage = new Bitmap(InputImage.Size.Width, InputImage.Size.Height);    // Create new output image
+                    //Color[,] Image = new Color[InputImage.Size.Width, InputImage.Size.Height];  // Create array to speed-up operations (Bitmap functions are very slow)
+                    Color[,] output = colorInversion(InputImage);
+                    //convertImageToString(Image);
+                    setupProgressBar();
+
+                    return myColorInversion(dilatationGray(output,structElement));
+
+        }
+        private Color[,] dilatationGray(Color[,]Image,StructElement structElement){
+            if (OutputImage != null) OutputImage.Dispose();                             // Reset output image
+                    OutputImage = new Bitmap(InputImage.Size.Width, InputImage.Size.Height);    // Create new output image
+                    //Color[,] Image = new Color[InputImage.Size.Width, InputImage.Size.Height];  // Create array to speed-up operations (Bitmap functions are very slow)
+                    Color[,] output = new Color[InputImage.Size.Width, InputImage.Size.Height]; 
+                    int[,] structMatrix = structElement.getMatrix();
+
+                    for(int i =0;i<InputImage.Size.Width;i++){
+                        for(int j=0;j<InputImage.Size.Height;j++){
+                            output[i,j] = Color.FromArgb(255,255,255);
+                        }
+                    }
+                    int offset = (structElement.getSize()-1)/2;
+                    //convertImageToString(Image);
+                    setupProgressBar();
+                        int value=0;
+                        for(int u=offset;u<InputImage.Size.Width-offset;u++){
+                            for(int v=offset;v<InputImage.Size.Height-offset;v++){
+                                value = 0;
+                                    for(int i=-offset; i<offset;i++){
+                                        for(int j=-offset; j<offset;j++){
+                                          if(structMatrix[i+offset,j+offset] != -256){        //cell off
+                                           if(Image[u+i,v+j].R+structMatrix[i+offset,j+offset] > 255)
+                                              value = Math.Max(value, 255);
+                                           else
+                                              value= Math.Max(value, (Image[u+i,v+j].R)+(structMatrix[i+offset,j+offset]));
+                                           }
+                                        }
+                                    }
+                                output[u,v]= Color.FromArgb(value,value,value);
+                                progressBar.PerformStep();
+                               
+                                
+                            }
+                        } 
+                    
+
+                    return output;
+        }
+        private Color[,] dilatation(Bitmap InputImage,StructElement structElement){
+            if (OutputImage != null) OutputImage.Dispose();                             // Reset output image
+                    OutputImage = new Bitmap(InputImage.Size.Width, InputImage.Size.Height);    // Create new output image
+                    Color[,] Image = new Color[InputImage.Size.Width, InputImage.Size.Height];  // Create array to speed-up operations (Bitmap functions are very slow)
+                    Color[,] output = new Color[InputImage.Size.Width, InputImage.Size.Height]; 
+                    int[,] structMatrix = structElement.getMatrix();
+                    
+                    convertImageToString(Image);
+                    setupProgressBar();
+                    if(isBinary(Image,InputImage.Size.Width,InputImage.Size.Height)){
+                        output = dilatationBinary(Image,structElement);
+                    }else{
+                        output = dilatationGray(Image,structElement);
+                    }                                                                                       
+                    return output;
+        }
+        private Color[,] opening(Color[,]Image,StructElement structElement){
+            if (OutputImage != null) OutputImage.Dispose();                             // Reset output image
+                    OutputImage = new Bitmap(InputImage.Size.Width, InputImage.Size.Height);    // Create new output image
+                    Color[,] output = new Color[InputImage.Size.Width, InputImage.Size.Height];  // Create array to speed-up operations (Bitmap functions are very slow)
+
+                    //convertImageToString(Image);
+                    setupProgressBar();
+                    if(isBinary(Image,InputImage.Size.Width,InputImage.Size.Height)){
+                        output = erosionBinary(Image,structElement);
+                        output = dilatationBinary(output,structElement);
+                    }
+                    else{
+                        output = erosionGray(Image,structElement);
+                        output = dilatationGray(output,structElement);
+                    }
+                    
+                    return output;
+        }
+        private Color[,] closing(Color[,]Image,StructElement structElement){
+            if (OutputImage != null) OutputImage.Dispose();                             // Reset output image
+                    OutputImage = new Bitmap(InputImage.Size.Width, InputImage.Size.Height);    // Create new output image
+                    Color[,] output = new Color[InputImage.Size.Width, InputImage.Size.Height];  // Create array to speed-up operations (Bitmap functions are very slow)
+
+                    //convertImageToString(Image);
+                    setupProgressBar();
+                    if(isBinary(Image,InputImage.Size.Width,InputImage.Size.Height)){
+                        output = dilatationBinary(Image,structElement);
+                        output = erosionBinary(output,structElement);
+                    }
+                    else{
+                        output = dilatationGray(Image,structElement);
+                        output = erosionGray(output,structElement);
+                    }
+                    
+                    return output;
+        }
+        private Color[,] myColorInversion(Color[,] Image){
+             if (OutputImage != null) OutputImage.Dispose();                             // Reset output image
+                    OutputImage = new Bitmap(InputImage.Size.Width, InputImage.Size.Height);    // Create new output image
+                    setupProgressBar();
+
+                    // Inversion of image
+                    for (int x = 0; x < InputImage.Size.Width; x++){
+                        for (int y = 0; y < InputImage.Size.Height; y++){
+                            Color pixelColor = Image[x, y];                                                                     // Get the pixel color at coordinate (x,y)
+                            Color updatedColor = Color.FromArgb(255 - pixelColor.R, 255 - pixelColor.G, 255 - pixelColor.B);    // Negative image
+                            Image[x, y] = updatedColor;                                                                         // Set the new pixel color at coordinate (x,y)
+                            progressBar.PerformStep();                                                                          // Increment progress bar
+                        }
+                    }
+
+                    return Image;
+        }
+
+        private bool isBinary(Color[,] image,int height,int width){
+            for(int i=0; i<height;i++){
+                for(int j=0;j<width;j++){
+                    if(image[i,j].R != 255 && image[i,j].R != 0 ){
+                        return false;
+                    }
+                }
+            }
+            return true;
+        }
         private void saveButton_Click(object sender, EventArgs e)
         {
             if (OutputImage == null) return;                                // Get out if no output image

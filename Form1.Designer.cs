@@ -130,7 +130,7 @@
             this.selectFunctionBox.Items.AddRange(new object[] {
             "Select a function",
             "Erosion",
-            "Dialation",
+            "Dilatation",
             "Opening",
             "Closing",
             "Complement",

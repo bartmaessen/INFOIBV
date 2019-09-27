@@ -66,7 +66,6 @@ namespace INFOIBV
                 else
                 {
                     pictureBox1.Image = (Image)InputImage;                 // Display input image
-                    pictureBox2.Image = (Image)InputImage2;
                 }
             }
         }
@@ -125,7 +124,7 @@ namespace INFOIBV
                 case 7:
                     showImage(applyOR(InputImage, InputImage2));
                     break;
-                case 9:
+                case 8:
                     int value;
                     if (Int32.TryParse(thresholdBox.Text, out value))
                     {

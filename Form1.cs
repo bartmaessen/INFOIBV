@@ -66,7 +66,6 @@ namespace INFOIBV
                 else
                 {
                     pictureBox1.Image = (Image)InputImage;                 // Display input image
-                    pictureBox2.Image = (Image)InputImage2;
                 }
             }
         }

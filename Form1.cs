@@ -93,13 +93,39 @@ namespace INFOIBV
                 case 0://No selection
                     return;
                     break;
-                case 7:
+                case 1:
+                    Color[,] Image1 = new Color[InputImage.Size.Width, InputImage.Size.Height];  // Create array to speed-up operations (Bitmap functions are very slow)
+                    convertImageToString(Image1);
+                    showImage(erosionGray(Image1,structuringElementGrayscale('+',5)));
+                    break;
+                case 2:
+                    //showImage(dilatation(InputImage,structuringElementGrayscale('+',5)));
+                    Color[,] Image2 = new Color[InputImage.Size.Width, InputImage.Size.Height];  // Create array to speed-up operations (Bitmap functions are very slow)
+                    convertImageToString(Image2);
+                    showImage(dilatationGray(Image2,structuringElementGrayscale('+',5)));
+                    break;
+                case 3:
+                    Color[,] Image3 = new Color[InputImage.Size.Width, InputImage.Size.Height];  // Create array to speed-up operations (Bitmap functions are very slow)
+                    convertImageToString(Image3);
+                    showImage(opening(Image3,structuringElementGrayscale('+',5)));
+                    break;
+                case 4:
+                    Color[,] Image4 = new Color[InputImage.Size.Width, InputImage.Size.Height];  // Create array to speed-up operations (Bitmap functions are very slow)
+                    convertImageToString(Image4);
+                    showImage(closing(Image4,structuringElementGrayscale('+',5)));
+                    break;
+                case 5:
+                    Color[,] Image5 = new Color[InputImage.Size.Width, InputImage.Size.Height];  // Create array to speed-up operations (Bitmap functions are very slow)
+                    convertImageToString(Image5);
+                    showImage(colorInversion(InputImage));
+                    break;
+                case 6:
                     showImage(applyAND(InputImage, InputImage2));
                     break;
-                case 8:
+                case 7:
                     showImage(applyOR(InputImage, InputImage2));
                     break;
-                case 9:
+                case 8:
                     int value;
                     if (Int32.TryParse(thresholdBox.Text, out value))
                     {
@@ -113,16 +139,8 @@ namespace INFOIBV
                         MessageBox.Show("Insert an integer from 0 untill 255");
                     }
                     break;
-                case 8:
-                    Color[,] Image1 = new Color[InputImage.Size.Width, InputImage.Size.Height];  // Create array to speed-up operations (Bitmap functions are very slow)
-                    convertImageToString(Image1);
-                    showImage(erosionGray(Image1,structuringElementGrayscale('+',5)));
-                    break;
                 case 9:
-                    //showImage(dilatation(InputImage,structuringElementGrayscale('+',5)));
-                    Color[,] Image = new Color[InputImage.Size.Width, InputImage.Size.Height];  // Create array to speed-up operations (Bitmap functions are very slow)
-                    convertImageToString(Image);
-                    showImage(dilatationGray(Image,structuringElementGrayscale('+',5)));
+                    
                     break;
                 default:
                     return;
@@ -209,11 +227,9 @@ namespace INFOIBV
                 }
             }
 
-            return outputImage;
+            return Image;
        
         }
-
-        //Assignment2
         private StructElement structuringElementBinary(char shape, int size){
             int[,] output = new int[size,size];
             if(shape == '+'){
@@ -339,9 +355,7 @@ namespace INFOIBV
         private Color[,] erosionGray(Color[,] Image,StructElement structElement){
             if (OutputImage != null) OutputImage.Dispose();                             // Reset output image
                     OutputImage = new Bitmap(InputImage.Size.Width, InputImage.Size.Height);    // Create new output image
-                    //Color[,] Image = new Color[InputImage.Size.Width, InputImage.Size.Height];  // Create array to speed-up operations (Bitmap functions are very slow)
-                    Color[,] output = colorInversion(InputImage);
-                    //convertImageToString(Image);
+                    Color[,] output = myColorInversion(Image);
                     setupProgressBar();
 
                     return myColorInversion(dilatationGray(output,structElement));

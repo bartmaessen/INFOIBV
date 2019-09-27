@@ -126,13 +126,6 @@
             this.selectFunctionBox.FormattingEnabled = true;
             this.selectFunctionBox.Items.AddRange(new object[] {
             "Select a function",
-            "Inversion",
-            "Grayscale",
-            "Contrast",
-            "Linear filtering",
-            "Non linear filtering",
-            "Edge detection",
-            "Thresholding",
             "Structuring element",
             "Erosion",
             "Dialation",

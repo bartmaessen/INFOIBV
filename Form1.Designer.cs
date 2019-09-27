@@ -129,7 +129,6 @@
             this.selectFunctionBox.FormattingEnabled = true;
             this.selectFunctionBox.Items.AddRange(new object[] {
             "Select a function",
-            "Structuring element",
             "Erosion",
             "Dialation",
             "Opening",

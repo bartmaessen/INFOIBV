@@ -125,7 +125,7 @@ namespace INFOIBV
                 case 7:
                     showImage(applyOR(InputImage, InputImage2));
                     break;
-                case 9:
+                case 8:
                     int value;
                     if (Int32.TryParse(thresholdBox.Text, out value))
                     {

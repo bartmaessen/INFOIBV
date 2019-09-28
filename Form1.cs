@@ -13,13 +13,12 @@ namespace INFOIBV
         private Bitmap InputImage = null;
         private Bitmap InputImage2 = null;
         private Bitmap OutputImage;
-        /*byte FOREGROUND = 1;
-        byte BACKGROUND = 0;
-        Boolean beVerbose = true;
+        /*
         List<List<Point>> outerContrours = null;
-        int regionId = 0;
+        int regionCount = 0;
         byte[][] pixelArray;
-        int[][] labelArray;*/
+        int[][] labelArray;
+        */
 
         public INFOIBV()
         {
@@ -719,7 +718,7 @@ namespace INFOIBV
         private Color[,] floodFill(Bitmap InputImage, Color[,] Image, int x, int y, int label)
         {
             Color[,] labelImage = new Color[InputImage.Size.Width, InputImage.Size.Height];
-            Stack<Point> s = new Stack<Point>();  //  stack
+            Stack<Point> s = new Stack<Point>();  
             s.Push(new Point(x, y));
             while (s.Count != 0)
             {
@@ -753,34 +752,44 @@ namespace INFOIBV
 
             findAllCountours();
         }
-
-        private void findAllCountours()
+        */
+        private List<List<Point>> findAllCountours(Bitmap InputImage)
         {
-            List<List<Point>> outerContours = new List<Point>(50);
+            if (OutputImage != null) OutputImage.Dispose();                             // Reset output image
+            OutputImage = new Bitmap(InputImage.Size.Width, InputImage.Size.Height);    // Create new output image
+            Color[,] Image = new Color[InputImage.Size.Width, InputImage.Size.Height];  // Create array to speed-up operations (Bitmap functions are very slow)
+
+            convertImageToString(Image);
+            setupProgressBar();
+
+            List<List<Point>> outerContours = new List<List<Point>>(50);
+            int[,] labelArray = null;
+            int regionId = 0;
             int label = 0;
 
             // scan top to bottom, left to right
-            for (int y = 1; y < pixelArray.Length-1; y++)
+            for (int y = 1; y < InputImage.Size.Height; y++)
             {
                 label = 0; //no label
-                for (int x = 1; x < pixelArray[y].Length-1; x++)
+                for (int x = 1; x < InputImage.Size.Width; x++)
                 {
-                    if(pixelArray[y][x] == FOREGROUND)
+                    if(Image[x,y].R == 255)
                     {
                         if (label != 0)
                         {
-                            labelArray[y][x] = label;
+                            labelArray[x,y] = label;
                         }
                         else
                         {
-                            label = labelArray[y][x];
+                            label = labelArray[x,y];
                             if(label == 0)
                             {
                                 regionId = regionId + 1;
                                 label = regionId;
-                                List<Point> oc = traceOuterContour(x, y, label);
+                                Point xS = new Point(x, y);
+                                List<Point> oc = traceContour(xS, 0, label, Image, labelArray);
                                 outerContours.Add(oc);
-                                labelArray[y][x] = label;
+                                labelArray[x,y] = label;
                             }
                         }
                     }
@@ -793,32 +802,74 @@ namespace INFOIBV
                     }
                 }
             }
+            return outerContours;
         }
+        /*
         private List<Point> traceOuterContour  (int cx, int cy, int label)
         {
             List<Point> contour = new List<Point>(label);
             traceContour(cx, cy, label, 0, contour);
             return contour;
-        }
-        private List<Point> traceContour (int xS, int yS, int label, int dS, List<Point> cont)
+        }*/
+        private List<Point> traceContour (Point xS, int dS, int label, Color[,] Image, int[,] labelArray)
         {
+            int dNext = findNextPoint(xS, dS, Image, labelArray);
+            List<Point> contour = new List<Point>;
             int xT, yT; // T = successor of starting point (xS,yS)
             int xP, yP; // P = previous contour point
             int xC, yC; // C = current contour point
-            Point pt = new Point(xS, yS);
-            int dNext = findNextPoint(pt, dS);
-            cont.Add(pt);
-            xP = xS; yP = yS;
+            Point pt = xS;
+            
+            contour.Add(pt);
+            xP = xS.X;
+            yP = xS.Y;
             xC = xT = pt.X;
             yC = yT = pt.Y;
 
-            Boolean done = (xS == xT && yS == yT); //true if isolated pixel
+            Boolean done = (xS.X == xT && xS.Y == yT); //true if isolated pixel
 
             while (!done)
             {
-                labelArra
+                labelArray[xC, yC] = label;
+                pt = new Point(xC, yC);
+                int dSearch = (dNext + 6) % 8;
+                dNext = findNextPoint(pt, dSearch, Image, labelArray);
+                xP = xC;
+                yP = yC;
+                xC = pt.X;
+                yC = pt.Y;
+                //are we back at starting position?
+                done = (xP == xS.X && yP == xS.Y && xC == xT && yC == yT);
+                if (!done)
+                {
+                    contour.Add(pt);
+                }
             }
-        }*/
+            return contour;
+        }
+
+        private int findNextPoint(Point xC, int dSearch, Color[,] Image, int[,] labelArray)
+        {
+            int[,] delta = { { 1, 0 }, { 1, 1 }, { 0, 1 }, { -1, 1 },
+                             { -1, 0 }, { -1, -1 }, { 0, -1 }, { 1, -1 } };
+            for (int i = 0; i<7; i++)
+            {
+                int x = xC.X + delta[dSearch,0];
+                int y = xC.Y + delta[dSearch, 1];
+                if (Image[x,y].R == 0)
+                { // Mark surrounding pixels
+                    labelArray[x, y] = -1;
+                    dSearch = (dSearch + 1) % 8;
+                }
+                else
+                { // Found a non background pixel
+                    xC.X = x;
+                    xC.Y = y;
+                    break;
+                }
+            }
+            return dSearch;
+        }
         private Point checkBoundary(Color[,] Image, int width, int height, int newX, int newY, Point stop)
         {
             for (int x = newX; x < width; x++)

@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Drawing;
 using System.Windows.Forms;
+using System.Collections.Generic;
 using System.IO;
 /* 
  * By Bart Maessen 4033620 & Teddy Gyabaah 6879136
@@ -134,7 +135,7 @@ namespace INFOIBV
                     }
                     break;
                 case 9:
-                 
+                    
                     break;
                 default:
                     return;
@@ -706,6 +707,63 @@ namespace INFOIBV
 
             return returnImage;
 
+        }
+
+        private void boundaryTrace(Bitmap InputImage)
+        {
+            if (OutputImage != null) OutputImage.Dispose();                             // Reset output image
+            OutputImage = new Bitmap(InputImage.Size.Width, InputImage.Size.Height);    // Create new output image
+            Color[,] Image = new Color[InputImage.Size.Width, InputImage.Size.Height];  // Create array to speed-up operations (Bitmap functions are very slow)
+
+            convertImageToString(Image);
+            setupProgressBar();
+
+            int startX = 0;
+            int startY = 0;
+
+            for (int x = 0; x < InputImage.Size.Width; x++)
+            {
+                for (int y = 0; y < InputImage.Size.Height; y++)
+                {
+                    Color pixelColor = Image[x, y];
+                    if (pixelColor.R == 255)
+                    {
+                        startX = x;
+                        startY = y;
+                        break;
+                    }
+                }
+            }
+            List<Point> boundaryPairs = new List<Point>();
+            boundaryPairs.Add(new Point(startX, startY));
+            int newX = startX;
+            int newY = startY + 1;
+
+            Point stop = new Point(0, 0);
+            Point boundary = checkBoundary(Image, InputImage.Size.Width, InputImage.Size.Height, newX, newY, stop);
+
+            if (boundary != stop)
+            {
+                boundaryPairs.Add(boundary);
+                checkBoundary(Image, InputImage.Size.Width, InputImage.Size.Height, boundary.X, boundary.Y + 1, stop);
+            }
+
+        }
+        private Point checkBoundary(Color[,] Image, int width, int height, int newX, int newY, Point stop)
+        {
+            for (int x = newX; x < width; x++)
+            {
+                for (int y = newY; y < height; y++)
+                {
+                    Color pixelColor = Image[x, y];
+                    if (pixelColor.R == 255)
+                    {
+                        Point boundary = new Point(x, y);
+                        return boundary;
+                    }
+                }
+            }
+            return stop;
         }
         private void saveButton_Click(object sender, EventArgs e)
         {

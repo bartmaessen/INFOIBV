@@ -93,16 +93,16 @@ namespace INFOIBV
                     return;
                     break;
                 case 1:
-                    showImage(erosion(InputImage,structuringElementGrayscale('+',5),null));
+                    showImage(erosion(InputImage,structuringElementGrayscale('+',9),null));
                     break;
                 case 2:
-                    showImage(dilatation(InputImage,structuringElementGrayscale('+',5),null));
+                    showImage(dilatation(InputImage,structuringElementGrayscale('+',9),null));
                     break;
                 case 3:
-                    showImage(opening(InputImage,structuringElementGrayscale('+',5)));
+                    showImage(opening(InputImage,structuringElementBinary('+',63)));
                     break;
                 case 4:
-                    showImage(closing(InputImage,structuringElementGrayscale('+',5)));
+                    showImage(closing(InputImage,structuringElementBinary('+',3)));
                     break;
                 case 5:
                     showImage(colorInversion(InputImage));
@@ -134,14 +134,35 @@ namespace INFOIBV
                     }
                     break;
                 case 9:
-                    
+                 
                     break;
                 default:
                     return;
             }
         }
 
-
+        private Color[,] doGrayscale(Bitmap InputImage){
+            if (OutputImage != null) OutputImage.Dispose();                             // Reset output image
+                    OutputImage = new Bitmap(InputImage.Size.Width, InputImage.Size.Height);    // Create new output image
+                    Color[,] image = new Color[InputImage.Size.Width, InputImage.Size.Height];
+                    
+                    
+                    convertImageToString(image);
+             // Grayscale conversion of image
+           for (int x = 0; x < InputImage.Size.Width; x++)
+                {
+                 for (int y = 0; y < InputImage.Size.Height; y++)
+                    {
+                      Color pixelColor = image[x, y];                                             // Get the pixel color at coordinate (x,y)
+                      var grayColor = (pixelColor.R + pixelColor.G + pixelColor.B) / 3;            // Get average of RGB value of pixel
+                      Color updatedColor = Color.FromArgb(grayColor, grayColor, grayColor);       // Set average to R, G and B values
+                      image[x, y] = updatedColor;                                                 // Set the new pixel color at coordinate (x,y)
+                      progressBar.PerformStep();                                                  // Increment progress bar
+                     }
+                 }
+           return image;
+                 
+        }
 
         //Assignment2
         private StructElement structuringElementBinary(char shape, int size){
@@ -217,9 +238,11 @@ namespace INFOIBV
                     setupProgressBar();
                     
                     if(isBinary(Image,InputImage.Size.Width,InputImage.Size.Height)){
-                        if(controlImage == null)
-                            output = erosionBinary(Image,structElement);
-                        else
+                        MessageBox.Show("Binary!");
+                        if(controlImage == null){
+                            output = erosionBinary(Image,structElement); 
+                            MessageBox.Show("Binary Erosion!");
+                        }else
                             output = geodesicErosionBinary(Image,structElement,controlImage);
                     }else{
                         if(controlImage == null)
@@ -289,12 +312,11 @@ namespace INFOIBV
         private Color[,] dilatationBinary(Color[,] Image,StructElement structElement){
             if (OutputImage != null) OutputImage.Dispose();                             // Reset output image
                     OutputImage = new Bitmap(InputImage.Size.Width, InputImage.Size.Height);    // Create new output image
-                    //Color[,] Image = new Color[InputImage.Size.Width, InputImage.Size.Height];  // Create array to speed-up operations (Bitmap functions are very slow)
                     Color[,] output = new Color[InputImage.Size.Width, InputImage.Size.Height];
-                    //convertImageToString(Image);
                     setupProgressBar();
                     int[,] H = structElement.getMatrix();
                     int Hsize = structElement.getSize();
+
                     for(int i =0;i<InputImage.Size.Width;i++){
                         for(int j=0;j<InputImage.Size.Height;j++){
                             output[i,j] = Color.FromArgb(255,255,255);
@@ -321,9 +343,8 @@ namespace INFOIBV
         private Color[,] erosionBinary(Color[,] Image,StructElement structElement){
             if (OutputImage != null) OutputImage.Dispose();                             // Reset output image
                     OutputImage = new Bitmap(InputImage.Size.Width, InputImage.Size.Height);    // Create new output image
-                    //Color[,] Image = new Color[InputImage.Size.Width, InputImage.Size.Height];  // Create array to speed-up operations (Bitmap functions are very slow)
                     Color[,] output = colorInversion(InputImage);
-                    //convertImageToString(Image);
+                   
                     setupProgressBar();
 
                     return myColorInversion(dilatationBinary(output,structElement));

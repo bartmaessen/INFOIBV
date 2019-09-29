@@ -2,6 +2,7 @@
 using System.Drawing;
 using System.Windows.Forms;
 using System.Collections.Generic;
+using System.Linq;
 using System.IO;
 /* 
  * By Bart Maessen 4033620 & Teddy Gyabaah 6879136
@@ -76,20 +77,7 @@ namespace INFOIBV
                 }
             }
         }
-        public void selectFuncionBox_SelectedIndexChanged(object sender, System.EventArgs e)
-        {
-            this.resultTextBox.Visible = false;
-            if (selectFunctionBox.SelectedIndex == 8)  //Move selectionbar and show a textbox when Linear filter or Thresholding are selected
-            {
-                this.selectFunctionBox.Location = new System.Drawing.Point(357, 13);
-                this.thresholdBox.Visible = true;
-            }
-            else
-            {
-                this.selectFunctionBox.Location = new System.Drawing.Point(402, 13);        //Move selectionbar and hide textbox when others are selected
-                this.thresholdBox.Visible = false;
-            }
-        }
+
         private void applyButton_Click(object sender, EventArgs e)
         {
             this.resultTextBox.Visible = false;
@@ -103,10 +91,10 @@ namespace INFOIBV
                     showImage(erosion(InputImage, structuringElementGrayscale('+', 9), null));
                     break;
                 case 2:
-                    showImage(dilatation(InputImage, structuringElementGrayscale('+', 9), null));
+                    showImage(dilatation(InputImage, structuringElementGrayscale('+', 11), null));
                     break;
                 case 3:
-                    showImage(opening(InputImage, structuringElementBinary('+', 63)));
+                    showImage(opening(InputImage, structuringElementBinary('+', 43)));
                     break;
                 case 4:
                     showImage(closing(InputImage, structuringElementBinary('+', 3)));
@@ -659,61 +647,47 @@ namespace INFOIBV
             if (OutputImage != null) OutputImage.Dispose();                             // Reset output image
             OutputImage = new Bitmap(InputImage.Size.Width, InputImage.Size.Height);    // Create new output image
             Color[,] Image = new Color[InputImage.Size.Width, InputImage.Size.Height];  // Create array to speed-up operations (Bitmap functions are very slow)
-            int countvalue;
-            if (Int32.TryParse(thresholdBox.Text, out countvalue))
+            int[] histogram_r = new int[256];
+            int histHeight = 128;
+            Bitmap returnImage = new Bitmap(256, histHeight + 10);
+            float max = 0;
+
+            convertImageToString(Image);
+            setupProgressBar();
+
+            // Inversion of image
+            for (int x = 0; x < InputImage.Size.Width; x++)
             {
-                if (countvalue >= 0 && countvalue < 256)
+                for (int y = 0; y < InputImage.Size.Height; y++)
                 {
-                    int[] histogram_r = new int[256];
-                    int histHeight = 128;
-                    Bitmap returnImage = new Bitmap(256, histHeight + 10);
-                    float max = 0;
-                    int countedValue = 0;
+                    Color pixelColor = Image[x, y];                                                                     // Get the pixel color at coordinate (x,y)
+                    histogram_r[pixelColor.R]++;
+                    if (max < histogram_r[pixelColor.R])
+                        max = histogram_r[pixelColor.R];
 
-                    convertImageToString(Image);
-                    setupProgressBar();
-
-                    // Inversion of image
-                    for (int x = 0; x < InputImage.Size.Width; x++)
-                    {
-                        for (int y = 0; y < InputImage.Size.Height; y++)
-                        {
-                            Color pixelColor = Image[x, y];                                                                     // Get the pixel color at coordinate (x,y)
-
-                            if (pixelColor.R == countvalue) { countedValue++; }                                                 // Count the set value
-                            histogram_r[pixelColor.R]++;
-                            if (max < histogram_r[pixelColor.R])
-                                max = histogram_r[pixelColor.R];
-
-                            progressBar.PerformStep();                                                                          // Increment progress bar
-                        }
-                    }
-
-                    using (Graphics g = Graphics.FromImage(returnImage))
-                    {
-                        for (int i = 0; i < histogram_r.Length; i++)
-                        {
-                            float pct = histogram_r[i] / max;   // What percentage of the max is this value?
-                            g.DrawLine(Pens.Black,
-                                new Point(i, returnImage.Height - 5),
-                                new Point(i, returnImage.Height - 5 - (int)(pct * histHeight))  // Use that percentage of the height
-                                );
-                        }
-                    }
-
-                    progressBar.Visible = false;
-                    resultTextBox.Visible = true;
-                    resultTextBox.Text = countedValue.ToString();
-
-                    return returnImage;
+                    progressBar.PerformStep();                                                                          // Increment progress bar
                 }
             }
-            else
+
+            using (Graphics g = Graphics.FromImage(returnImage))
             {
-                MessageBox.Show("Insert an integer from 0 untill 255");
-                return null;
+                for (int i = 0; i < histogram_r.Length; i++)
+                {
+                    float pct = histogram_r[i] / max;   // What percentage of the max is this value?
+                    g.DrawLine(Pens.Black,
+                        new Point(i, returnImage.Height - 5),
+                        new Point(i, returnImage.Height - 5 - (int)(pct * histHeight))  // Use that percentage of the height
+                        );
+                }
             }
-            return null;
+
+            progressBar.Visible = false;
+            resultTextBox.Visible = true;
+            int countedValue = histogram_r.Count(s => s != 0);
+            int countBG = histogram_r[255];
+            resultTextBox.Text = countedValue.ToString() + "  BG: " + countBG;
+
+            return returnImage;
         }
 
         private int[,] floodFill(Bitmap InputImage, Color[,] Image, int x, int y, int label)

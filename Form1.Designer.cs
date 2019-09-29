@@ -143,7 +143,6 @@
             this.selectFunctionBox.Name = "selectFunctionBox";
             this.selectFunctionBox.Size = new System.Drawing.Size(127, 21);
             this.selectFunctionBox.TabIndex = 7;
-            this.selectFunctionBox.SelectedIndexChanged += new System.EventHandler(this.selectFuncionBox_SelectedIndexChanged);
             // 
             // thresholdBox
             // 
@@ -159,7 +158,7 @@
             // 
             this.resultTextBox.Location = new System.Drawing.Point(644, 13);
             this.resultTextBox.Name = "resultTextBox";
-            this.resultTextBox.Size = new System.Drawing.Size(40, 20);
+            this.resultTextBox.Size = new System.Drawing.Size(85, 20);
             this.resultTextBox.TabIndex = 9;
             this.resultTextBox.Visible = false;
             // 

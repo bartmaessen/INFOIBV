@@ -55,7 +55,21 @@ namespace INFOIBV
                 return this.size;
             }
         }
+        public class HCounting {
+            Bitmap histogram;
+            int noValue;
+            public HCounting(Bitmap histogram, int noValue) {
+                this.histogram = histogram;
+                this.noValue = noValue;
+            }
 
+            public Bitmap getHistogram() {
+                return this.histogram;
+            }
+            public int getValueCounting() {
+                return this.noValue;
+            }
+        }
         private void LoadImageButton_Click(object sender, EventArgs e)
         {
             if (openImageDialog.ShowDialog() == DialogResult.OK)             // Open File Dialog
@@ -115,7 +129,8 @@ namespace INFOIBV
                         showImage(applyOR(InputImage, InputImage2));
                     break;
                 case 8:
-                    pictureBox2.Image = valueCounting(InputImage);
+                    HCounting result = valueCounting(InputImage);
+                    pictureBox2.Image = result.getHistogram();
                     break;
                 case 9:
                      richTextBox1.Text = displayMembers(findAllCountours(InputImage));
@@ -642,7 +657,7 @@ namespace INFOIBV
 
             return Image;
         }
-        private Bitmap valueCounting(Bitmap InputImage)
+        private HCounting valueCounting(Bitmap InputImage)
         {
             if (OutputImage != null) OutputImage.Dispose();                             // Reset output image
             OutputImage = new Bitmap(InputImage.Size.Width, InputImage.Size.Height);    // Create new output image
@@ -687,7 +702,7 @@ namespace INFOIBV
             int countBG = histogram_r[255];
             resultTextBox.Text = countedValue.ToString() + "  BG: " + countBG;
 
-            return returnImage;
+            return new HCounting(returnImage,countedValue);
         }
 
         private int[,] floodFill(Bitmap InputImage, Color[,] Image, int x, int y, int label)

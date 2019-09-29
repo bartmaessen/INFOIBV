@@ -655,7 +655,6 @@ namespace INFOIBV
             convertImageToString(Image);
             setupProgressBar();
 
-            // Inversion of image
             for (int x = 0; x < InputImage.Size.Width; x++)
             {
                 for (int y = 0; y < InputImage.Size.Height; y++)
@@ -684,8 +683,8 @@ namespace INFOIBV
             progressBar.Visible = false;
             resultTextBox.Visible = true;
             int countedValue = histogram_r.Count(s => s != 0);
-            int countBG = histogram_r[255];
-            resultTextBox.Text = countedValue.ToString() + "  BG: " + countBG;
+            int countFG = histogram_r[1];
+            resultTextBox.Text = countedValue.ToString() + "  FG: " + countFG;
 
             return returnImage;
         }
@@ -715,20 +714,6 @@ namespace INFOIBV
             }
             return labelImage;
         }
-
-        /*private void boundaryTrace(Bitmap InputImage)
-        {
-            if (OutputImage != null) OutputImage.Dispose();                             // Reset output image
-            OutputImage = new Bitmap(InputImage.Size.Width, InputImage.Size.Height);    // Create new output image
-            Color[,] Image = new Color[InputImage.Size.Width, InputImage.Size.Height];  // Create array to speed-up operations (Bitmap functions are very slow)
-
-            convertImageToString(Image);
-            setupProgressBar();
-
-            findAllCountours();
-        }
-        */
-
         private string displayMembers(List<List<Point>> contours)
         {
             int contourcount = 1;

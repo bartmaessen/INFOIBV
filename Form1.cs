@@ -127,7 +127,7 @@ namespace INFOIBV
                     pictureBox2.Image = result.getHistogram();
                     break;
                 case 9:
-                     richTextBox1.Text =displayMembers(boundaryTrace(InputImage));
+                     boundaryTrace(InputImage);
                     break;
                 case 10:
                     showImage(colorInversion(InputImage));
@@ -768,7 +768,7 @@ namespace INFOIBV
             if (startX < 0)
                 return result;
 
-            Tuple<int,int> nextPt = findNextContourPoint(pixels, startX, startY, 0);
+            Tuple<int,int,int> nextPt = findNextContourPoint(pixels, startX, startY, 0);
             int startNextX = nextPt.Item1;
             int startNextY = nextPt.Item2;
             int nextDir = nextPt.Item3;

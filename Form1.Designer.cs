@@ -44,7 +44,6 @@
             this.backgroundWorker1 = new System.ComponentModel.BackgroundWorker();
             this.thresholdBox = new System.Windows.Forms.TextBox();
             this.resultTextBox = new System.Windows.Forms.TextBox();
-            this.richTextBox1 = new System.Windows.Forms.RichTextBox();
             ((System.ComponentModel.ISupportInitialize)(this.pictureBox1)).BeginInit();
             ((System.ComponentModel.ISupportInitialize)(this.pictureBox2)).BeginInit();
             this.SuspendLayout();
@@ -163,20 +162,11 @@
             this.resultTextBox.TabIndex = 9;
             this.resultTextBox.Visible = false;
             // 
-            // richTextBox1
-            // 
-            this.richTextBox1.Location = new System.Drawing.Point(531, 440);
-            this.richTextBox1.Name = "richTextBox1";
-            this.richTextBox1.Size = new System.Drawing.Size(512, 114);
-            this.richTextBox1.TabIndex = 10;
-            this.richTextBox1.Text = "Debug testBox which will display the boundary points as string";
-            // 
             // INFOIBV
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.ClientSize = new System.Drawing.Size(1052, 566);
-            this.Controls.Add(this.richTextBox1);
             this.Controls.Add(this.resultTextBox);
             this.Controls.Add(this.thresholdBox);
             this.Controls.Add(this.selectFunctionBox);
@@ -213,7 +203,6 @@
         private System.ComponentModel.BackgroundWorker backgroundWorker1;
         private System.Windows.Forms.TextBox thresholdBox;
         private System.Windows.Forms.TextBox resultTextBox;
-        private System.Windows.Forms.RichTextBox richTextBox1;
     }
 }
 

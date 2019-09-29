@@ -127,21 +127,10 @@ namespace INFOIBV
                         showImage(applyOR(InputImage, InputImage2));
                     break;
                 case 8:
-                    int value;
-                    if (Int32.TryParse(thresholdBox.Text, out value))
-                    {
-                        if (value >= 0 && value < 256)
-                        {
-                            pictureBox2.Image = valueCounting(InputImage, value);
-                        }
-                    }
-                    else
-                    {
-                        MessageBox.Show("Insert an integer from 0 untill 255");
-                    }
+                    pictureBox2.Image = valueCounting(InputImage);
                     break;
                 case 9:
-
+                     richTextBox1.Text = displayMembers(findAllCountours(InputImage));
                     break;
                 default:
                     return;
@@ -665,59 +654,71 @@ namespace INFOIBV
 
             return Image;
         }
-        private Bitmap valueCounting(Bitmap InputImage, int countValue)
+        private Bitmap valueCounting(Bitmap InputImage)
         {
             if (OutputImage != null) OutputImage.Dispose();                             // Reset output image
             OutputImage = new Bitmap(InputImage.Size.Width, InputImage.Size.Height);    // Create new output image
             Color[,] Image = new Color[InputImage.Size.Width, InputImage.Size.Height];  // Create array to speed-up operations (Bitmap functions are very slow)
-            int[] histogram_r = new int[256];
-            int histHeight = 128;
-            Bitmap returnImage = new Bitmap(256, histHeight + 10);
-            float max = 0;
-            int countedValue = 0;
-
-            convertImageToString(Image);
-            setupProgressBar();
-
-            // Inversion of image
-            for (int x = 0; x < InputImage.Size.Width; x++)
+            int countvalue;
+            if (Int32.TryParse(thresholdBox.Text, out countvalue))
             {
-                for (int y = 0; y < InputImage.Size.Height; y++)
+                if (countvalue >= 0 && countvalue < 256)
                 {
-                    Color pixelColor = Image[x, y];                                                                     // Get the pixel color at coordinate (x,y)
+                    int[] histogram_r = new int[256];
+                    int histHeight = 128;
+                    Bitmap returnImage = new Bitmap(256, histHeight + 10);
+                    float max = 0;
+                    int countedValue = 0;
 
-                    if (pixelColor.R == countValue) { countedValue++; }                                                 // Count the set value
-                    histogram_r[pixelColor.R]++;
-                    if (max < histogram_r[pixelColor.R])
-                        max = histogram_r[pixelColor.R];
+                    convertImageToString(Image);
+                    setupProgressBar();
 
-                    progressBar.PerformStep();                                                                          // Increment progress bar
+                    // Inversion of image
+                    for (int x = 0; x < InputImage.Size.Width; x++)
+                    {
+                        for (int y = 0; y < InputImage.Size.Height; y++)
+                        {
+                            Color pixelColor = Image[x, y];                                                                     // Get the pixel color at coordinate (x,y)
+
+                            if (pixelColor.R == countvalue) { countedValue++; }                                                 // Count the set value
+                            histogram_r[pixelColor.R]++;
+                            if (max < histogram_r[pixelColor.R])
+                                max = histogram_r[pixelColor.R];
+
+                            progressBar.PerformStep();                                                                          // Increment progress bar
+                        }
+                    }
+
+                    using (Graphics g = Graphics.FromImage(returnImage))
+                    {
+                        for (int i = 0; i < histogram_r.Length; i++)
+                        {
+                            float pct = histogram_r[i] / max;   // What percentage of the max is this value?
+                            g.DrawLine(Pens.Black,
+                                new Point(i, returnImage.Height - 5),
+                                new Point(i, returnImage.Height - 5 - (int)(pct * histHeight))  // Use that percentage of the height
+                                );
+                        }
+                    }
+
+                    progressBar.Visible = false;
+                    resultTextBox.Visible = true;
+                    resultTextBox.Text = countedValue.ToString();
+
+                    return returnImage;
                 }
             }
-
-            using (Graphics g = Graphics.FromImage(returnImage))
+            else
             {
-                for (int i = 0; i < histogram_r.Length; i++)
-                {
-                    float pct = histogram_r[i] / max;   // What percentage of the max is this value?
-                    g.DrawLine(Pens.Black,
-                        new Point(i, returnImage.Height - 5),
-                        new Point(i, returnImage.Height - 5 - (int)(pct * histHeight))  // Use that percentage of the height
-                        );
-                }
+                MessageBox.Show("Insert an integer from 0 untill 255");
+                return null;
             }
-
-            progressBar.Visible = false;
-            resultTextBox.Visible = true;
-            resultTextBox.Text = countedValue.ToString();
-
-            return returnImage;
-
+            return null;
         }
 
-        private Color[,] floodFill(Bitmap InputImage, Color[,] Image, int x, int y, int label)
+        private int[,] floodFill(Bitmap InputImage, Color[,] Image, int x, int y, int label)
         {
-            Color[,] labelImage = new Color[InputImage.Size.Width, InputImage.Size.Height];
+            int[,] labelImage = new int[InputImage.Size.Width, InputImage.Size.Height];
             Stack<Point> s = new Stack<Point>();  
             s.Push(new Point(x, y));
             while (s.Count != 0)
@@ -731,7 +732,7 @@ namespace INFOIBV
                             && ((v < InputImage.Size.Height)
                             && (Image[u, v].R == 255))))))
                 {
-                    labelImage[u, v] = Color.FromArgb(label,label,label);
+                    labelImage[u, v] = label;
                     s.Push(new Point((u + 1), v));
                     s.Push(new Point(u, (v + 1)));
                     s.Push(new Point(u, (v - 1)));
@@ -753,6 +754,23 @@ namespace INFOIBV
             findAllCountours();
         }
         */
+
+        private string displayMembers(List<List<Point>> contours)
+        {
+            int contourcount = 1;
+            string result = null;
+            foreach (List<Point> list in contours)
+            {
+                result += "Contour " + contourcount.ToString() + ": ";
+                contourcount = contourcount + 1;
+                foreach (Point point in list)
+                {
+                    result += point + ", ";
+                }
+                result += ".       ";
+            }
+            return result;
+        }
         private List<List<Point>> findAllCountours(Bitmap InputImage)
         {
             if (OutputImage != null) OutputImage.Dispose();                             // Reset output image
@@ -781,6 +799,7 @@ namespace INFOIBV
                         }
                         else
                         {
+                            labelArray = floodFill(InputImage, Image, x, y, label);
                             label = labelArray[x,y];
                             if(label == 0)
                             {
@@ -814,7 +833,7 @@ namespace INFOIBV
         private List<Point> traceContour (Point xS, int dS, int label, Color[,] Image, int[,] labelArray)
         {
             int dNext = findNextPoint(xS, dS, Image, labelArray);
-            List<Point> contour = new List<Point>;
+            List<Point> contour = new List<Point>();
             int xT, yT; // T = successor of starting point (xS,yS)
             int xP, yP; // P = previous contour point
             int xC, yC; // C = current contour point
@@ -854,7 +873,7 @@ namespace INFOIBV
                              { -1, 0 }, { -1, -1 }, { 0, -1 }, { 1, -1 } };
             for (int i = 0; i<7; i++)
             {
-                int x = xC.X + delta[dSearch,0];
+                int x = xC.X + delta[dSearch,0]; 
                 int y = xC.Y + delta[dSearch, 1];
                 if (Image[x,y].R == 0)
                 { // Mark surrounding pixels

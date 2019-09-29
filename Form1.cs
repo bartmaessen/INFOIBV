@@ -102,16 +102,16 @@ namespace INFOIBV
                     return;
                     break;
                 case 1:
-                    showImage(erosion(InputImage, structuringElementGrayscale('+', 9), null));
+                    showImage(erosion(InputImage, structuringElementBinary('+', 3), null));
                     break;
                 case 2:
-                    showImage(dilatation(InputImage, structuringElementGrayscale('+', 11), null));
+                    showImage(dilatation(InputImage, structuringElementGrayscale('+', 3), null));
                     break;
                 case 3:
-                    showImage(opening(InputImage, structuringElementBinary('+', 43)));
+                    showImage(opening(InputImage, structuringElementBinary('+', 23)));
                     break;
                 case 4:
-                    showImage(closing(InputImage, structuringElementBinary('+', 3)));
+                    showImage(closing(InputImage, structuringElementBinary('+', 23)));
                     break;
                 case 5:
                     showImage(colorInversion(InputImage));
@@ -134,6 +134,9 @@ namespace INFOIBV
                     break;
                 case 9:
                      richTextBox1.Text = displayMembers(findAllCountours(InputImage));
+                    break;
+                case 10:
+                    showImage(colorInversion(InputImage));
                     break;
                 default:
                     return;
@@ -666,6 +669,7 @@ namespace INFOIBV
             int histHeight = 128;
             Bitmap returnImage = new Bitmap(256, histHeight + 10);
             float max = 0;
+            int countFG = 0;
 
             convertImageToString(Image);
             setupProgressBar();
@@ -675,6 +679,7 @@ namespace INFOIBV
                 for (int y = 0; y < InputImage.Size.Height; y++)
                 {
                     Color pixelColor = Image[x, y];                                                                     // Get the pixel color at coordinate (x,y)
+                    if (pixelColor.R != 255) countFG = countFG + 1;
                     histogram_r[pixelColor.R]++;
                     if (max < histogram_r[pixelColor.R])
                         max = histogram_r[pixelColor.R];
@@ -698,9 +703,7 @@ namespace INFOIBV
             progressBar.Visible = false;
             resultTextBox.Visible = true;
             int countedValue = histogram_r.Count(s => s != 0);
-            int countFG = histogram_r[1];
             resultTextBox.Text = countedValue.ToString() + "  FG: " + countFG;
-
             return new HCounting(returnImage,countedValue);
         }
 
